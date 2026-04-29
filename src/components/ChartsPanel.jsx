@@ -55,13 +55,13 @@ const SPREAD_FAMILIES = {
       findYield(panels, c, '2Y'),
     ),
   },
-  vs_bund: {
-    label: 'Sovereign 10Y vs Bund (XX − DE)',
+  vs_us: {
+    label: 'Sovereign 10Y vs US (XX − US)',
     yLabel: 'pp',
-    countries: ['US', 'JP', 'FR', 'IT', 'UK', 'CA', 'KR', 'AU'],
+    countries: ['JP', 'DE', 'FR', 'IT', 'UK', 'CA', 'KR', 'AU'],
     build: (panels, c) => makeSpread(
       findYield(panels, c, '10Y'),
-      findYield(panels, 'DE', '10Y'),
+      findYield(panels, 'US', '10Y'),
     ),
   },
   real_rate: {
@@ -73,6 +73,32 @@ const SPREAD_FAMILIES = {
       findBEI(panels, c),
     ),
   },
+  yield_curve: {
+    label: 'Yield curves (snapshot)',
+    yLabel: '% p.a.',
+    isYieldCurve: true,
+    countries: ['US', 'JP', 'DE', 'FR', 'IT', 'UK', 'CA', 'KR', 'AU'],
+  },
+}
+
+// Tenor → years (for x-axis spacing on the yield curve chart)
+const MATURITY_YEARS = { '3M': 0.25, '1Y': 1, '2Y': 2, '5Y': 5, '10Y': 10, '20Y': 20, '30Y': 30 }
+
+// Last value at-or-before a given date, or last value overall if dateStr is null.
+function valueAtOrBefore(history, dateStr) {
+  if (!history?.length) return null
+  if (!dateStr) return history[history.length - 1][1]
+  let last = null
+  for (const [d, v] of history) {
+    if (d <= dateStr) last = v
+    else break
+  }
+  return last
+}
+
+// The most recent date the series has any observation for.
+function lastDateOf(history) {
+  return history?.length ? history[history.length - 1][0] : null
 }
 
 function findYield(panels, country, tenor) {
@@ -189,7 +215,7 @@ export default function ChartsPanel() {
 
       {mode === 'country' && <ByCountryView panels={panels} country={country} cutoff={cutoff} />}
       {mode === 'theme'   && <ByThemeView   panels={panels} theme={theme} yieldTenor={yieldTenor} cutoff={cutoff} />}
-      {mode === 'spreads' && <SpreadsView   panels={panels} family={spreadFamily} cutoff={cutoff} />}
+      {mode === 'spreads' && <SpreadsView   panels={panels} family={spreadFamily} cutoff={cutoff} range={range} />}
     </div>
   )
 }
@@ -338,21 +364,21 @@ function ByThemeView({ panels, theme, yieldTenor, cutoff }) {
 
 // ----------------------------------------------------------------------------
 
-function SpreadsView({ panels, family, cutoff }) {
+function SpreadsView({ panels, family, cutoff, range }) {
   const cfg = SPREAD_FAMILIES[family]
-  const series = useMemo(() => (
-    cfg.countries
-      .map((c, i) => ({
-        country: c,
-        history: cfg.build(panels, c),
-      }))
-      .filter(s => s.history && s.history.length)
-      .map((s, i) => ({
-        key: s.country,
-        history: s.history,
-        color: PALETTE[i % PALETTE.length],
-      }))
-  ), [panels, family])
+
+  if (cfg.isYieldCurve) {
+    return <YieldCurveChart panels={panels} comparisonCutoff={cutoff} rangeLabel={range} cfg={cfg} />
+  }
+
+  const series = cfg.countries
+    .map(c => ({ country: c, history: cfg.build(panels, c) }))
+    .filter(s => s.history && s.history.length)
+    .map((s, i) => ({
+      key: s.country,
+      history: s.history,
+      color: PALETTE[i % PALETTE.length],
+    }))
 
   if (!series.length) return <div className="panel p-6 text-sm text-slate-500">No series available for this spread.</div>
 
@@ -365,6 +391,146 @@ function SpreadsView({ panels, family, cutoff }) {
       tall
       zeroLine
     />
+  )
+}
+
+// ----------------------------------------------------------------------------
+// Yield curve snapshot: x-axis = maturity in years, y-axis = yield.
+// One line per country (current). Optionally a dashed comparison line per
+// country when the range picker is set to anything other than MAX.
+
+function YieldCurveChart({ panels, comparisonCutoff, rangeLabel, cfg }) {
+  const { isDark } = useDarkMode()
+  const t = getTheme(isDark)
+
+  const { plotData, countriesPresent, latestDate, comparisonDate } = useMemo(() => {
+    if (!panels.yields) return { plotData: [], countriesPresent: [], latestDate: null, comparisonDate: null }
+
+    const present = []
+    let latestSeen = null
+    let comparisonSeen = null
+
+    const rows = TENOR_ORDER.map(tenor => {
+      const point = { maturity: MATURITY_YEARS[tenor], tenor }
+      for (const c of cfg.countries) {
+        const series = panels.yields.rows.find(r => r.country === c && r.label === tenor)
+        if (!series?.history?.length) continue
+
+        const lastDate = lastDateOf(series.history)
+        const lastV    = valueAtOrBefore(series.history, null)
+        const prevV    = comparisonCutoff ? valueAtOrBefore(series.history, comparisonCutoff) : null
+
+        if (Number.isFinite(lastV)) {
+          point[c] = lastV
+          if (!present.includes(c)) present.push(c)
+          if (!latestSeen || lastDate > latestSeen) latestSeen = lastDate
+        }
+        if (Number.isFinite(prevV)) {
+          point[`${c}_prev`] = prevV
+          if (!comparisonSeen) comparisonSeen = comparisonCutoff
+        }
+      }
+      return point
+    })
+
+    return {
+      plotData: rows,
+      countriesPresent: present,
+      latestDate: latestSeen,
+      comparisonDate: comparisonSeen,
+    }
+  }, [panels, comparisonCutoff, cfg])
+
+  const showComparison = comparisonCutoff != null && rangeLabel !== 'MAX'
+
+  return (
+    <div className="panel p-4 flex flex-col gap-2">
+      <div className="flex items-baseline justify-between gap-3 flex-wrap">
+        <span className="text-sm font-medium text-slate-800 dark:text-slate-100">
+          {cfg.label}
+          <span className="ml-2 text-xs text-slate-500 dark:text-slate-400 font-normal">
+            solid = {latestDate ?? 'latest'}
+            {showComparison && <> · dashed = {comparisonDate ?? rangeLabel}</>}
+          </span>
+        </span>
+        <span className="text-xs text-slate-400 dark:text-slate-500">{cfg.yLabel}</span>
+      </div>
+      <div style={{ width: '100%', height: 460 }}>
+        <ResponsiveContainer>
+          <LineChart data={plotData} margin={{ top: 5, right: 15, bottom: 5, left: 0 }}>
+            <CartesianGrid stroke={t.ui.grid} strokeDasharray="3 3" vertical={false} />
+            <XAxis
+              type="number"
+              dataKey="maturity"
+              domain={[0, 30]}
+              ticks={[0.25, 1, 2, 5, 10, 20, 30]}
+              tickFormatter={v => {
+                const tenor = Object.entries(MATURITY_YEARS).find(([, m]) => m === v)
+                return tenor ? tenor[0] : v
+              }}
+              tick={{ fill: t.ui.tickLabel, fontSize: t.ui.tickFontSize }}
+              axisLine={{ stroke: t.ui.axis }}
+              tickLine={false}
+              label={{ value: 'Maturity', position: 'insideBottom', offset: -2, fill: t.ui.tickLabel, fontSize: 11 }}
+            />
+            <YAxis
+              tick={{ fill: t.ui.tickLabel, fontSize: t.ui.tickFontSize }}
+              axisLine={{ stroke: t.ui.axis }}
+              tickLine={false}
+              width={45}
+              domain={['auto', 'auto']}
+            />
+            <Tooltip
+              contentStyle={getTooltipStyle(isDark)}
+              labelStyle={{ color: t.ui.tickLabel, fontSize: 11 }}
+              itemStyle={{ fontSize: 11 }}
+              formatter={(v) => Number.isFinite(v) ? `${v.toFixed(3)}%` : '—'}
+              labelFormatter={(v) => {
+                const tenor = Object.entries(MATURITY_YEARS).find(([, m]) => m === v)
+                return tenor ? `${tenor[0]} (${v}y)` : `${v}y`
+              }}
+            />
+            <Legend
+              wrapperStyle={{ fontSize: 11, paddingTop: 8 }}
+              iconType="line"
+              payload={countriesPresent.map((c, i) => ({
+                value: c,
+                type: 'line',
+                color: PALETTE[i % PALETTE.length],
+              }))}
+            />
+            {countriesPresent.map((c, i) => (
+              <Line
+                key={c}
+                type="monotone"
+                dataKey={c}
+                stroke={PALETTE[i % PALETTE.length]}
+                strokeWidth={1.6}
+                dot={{ r: 3 }}
+                isAnimationActive={false}
+                connectNulls
+                legendType="line"
+              />
+            ))}
+            {showComparison && countriesPresent.map((c, i) => (
+              <Line
+                key={`${c}_prev`}
+                type="monotone"
+                dataKey={`${c}_prev`}
+                stroke={PALETTE[i % PALETTE.length]}
+                strokeWidth={1}
+                strokeDasharray="3 3"
+                strokeOpacity={0.55}
+                dot={{ r: 2 }}
+                isAnimationActive={false}
+                connectNulls
+                legendType="none"
+              />
+            ))}
+          </LineChart>
+        </ResponsiveContainer>
+      </div>
+    </div>
   )
 }
 
