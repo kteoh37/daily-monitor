@@ -8,7 +8,6 @@ const PANELS = [
   { key: 'equities',                label: 'Equity indices',           layout: 'flat'   },
   { key: 'volatility',              label: 'Volatility indices',       layout: 'flat'   },
   { key: 'policy_rates',            label: 'Policy rates',             layout: 'flat'   },
-  { key: 'overnight_rates',         label: 'Overnight rates',          layout: 'flat'   },
   { key: 'commodities_uncertainty', label: 'Commodities & uncertainty',layout: 'flat'   },
 ]
 
