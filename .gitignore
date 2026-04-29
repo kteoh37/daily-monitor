@@ -1,3 +1,7 @@
+# Generated panel JSON snapshots (rebuilt from haver-data)
+public/data/*.json
+!public/data/.gitkeep
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[codz]
