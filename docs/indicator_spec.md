@@ -7,11 +7,11 @@ All Haver codes below are confirmed present in the local `haver-data` parquet at
 ## Panels
 
 ### 1. Sovereign yields (daily)
-Yield curve points: 3M, 1Y, 2Y, 5Y, 10Y, 20Y, 30Y.
+Yield curve points: 3M, 1Y, 2Y, 5Y, 10Y, 20Y, 30Y. All `@intdaily` unless noted. **All codes verified present in parquet (2026-04-29).**
 
 | Country | 3M | 1Y | 2Y | 5Y | 10Y | 20Y | 30Y |
 |---|---|---|---|---|---|---|---|
-| US | r111m3m | r111m1y | r111m2y | r111m5y | (use `fcm10@daily`) | r111mk\* | r111mt\* |
+| US | r111m3m | r111m1y | r111m2y | r111m5y | `fcm10@daily` | `fcm20@daily` | `fcm30@daily` |
 | JP | r158m3m | r158m1y | r158m2y | r158m5y | r158ga | r158gk | r158gt |
 | DE | r134e3m | r134m1y | r134m2y | r134m5y | r134ma | r134mk | r134mt |
 | FR | r132m3m | r132m1y | r132m2y | r132m5y | r132ma | r132mk | r132mt |
@@ -23,21 +23,22 @@ Yield curve points: 3M, 1Y, 2Y, 5Y, 10Y, 20Y, 30Y.
 
 \* short-end uses available equivalent (T-bill / deposit / bank-bill rate).
 
-EA aggregate: not directly available — proxy with DE (Bund) for risk-free, or use IT–DE / FR–DE spreads for periphery risk.
+**US note:** `r111m10y/20y/30y@intdaily` do not exist. Use Treasury constant-maturity series from the `daily` database: `fcm10`, `fcm20`, `fcm30`. (1Y–5Y are still in `intdaily`.)
 
-Verify all `r***m20y` and `r***m30y` codes when wiring the build script — some may live in `intdaily` under slightly different suffixes.
+**EA aggregate:** not directly available — proxy with DE (Bund) for risk-free, or compute IT–DE / FR–DE spreads for periphery risk.
 
 ### 2. Breakeven inflation (daily)
-10Y BEI where directly available.
+10Y BEI where directly available. All verified present (2026-04-29) except where noted.
 
 - US `fin10@daily` (10Y nominal − 10Y TIPS)
-- JP `r158fbv`
-- DE `r134fbv`
-- FR `r132fbv`
-- CA `r156fbv`
-- AU `r193fbv`
-- KR `r542fbv`
-- UK, IT — **not available**, leave gap or compute synthetically later.
+- JP `r158fbv@intdaily`
+- DE `r134fbv@intdaily`
+- FR `r132fbv@intdaily`
+- CA `r156fbv@intdaily`
+- AU `r193fbv@intdaily`
+- KR `r542fbv@intdaily`
+- UK `r112yaa@intdaily` — *proxy: 10Y implied forward inflation rate (not a true BEI but the closest series available)*
+- IT — **no series available**, leave gap.
 
 ### 3. FX (daily, vs USD)
 - JPY `x111jpj`
@@ -125,8 +126,13 @@ One file per panel, e.g. `public/data/yields.json`:
 }
 ```
 
+## Verification (2026-04-29)
+All codes in this spec confirmed present in `data/data.parquet` except:
+- **US 10Y/20Y/30Y in `intdaily`** — not available; use `fcm10/20/30@daily` instead (now reflected above).
+- **Italy 10Y BEI** — no inflation-linked BTP / BEI series in parquet. Gap left as-is.
+- **UK 10Y BEI** — true BEI not available; using `r112yaa@intdaily` (10Y implied forward inflation) as proxy.
+
 ## Open items
-- Confirm all 20Y/30Y G7 codes resolve in parquet
 - Decide on EA aggregate proxy (Bund or composite)
 - Decide on which trailing window for z-scores (5y default; user-toggleable?)
 - Decide whether to bundle history (large) or only latest + sparkline window in panel JSON
