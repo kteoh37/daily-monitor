@@ -1,5 +1,7 @@
 # Daily Market Monitor — Japan & G7
 
+**Live dashboard:** https://kteoh37.github.io/daily-monitor/
+
 Interactive dashboard for daily monitoring of key market indicators across **G7 + Euro Area + Korea + Australia** (10 jurisdictions).
 
 Sourced from Haver Analytics via the [haver-data](https://github.com/jasonzhixinglu/haver-data) pipeline (refreshed daily).
@@ -33,6 +35,6 @@ Refresh data:
 python scripts/build_data.py --haver-data ../haver-data
 ```
 
-## Project status
+## Deployment
 
-Scaffold only. Indicator spec in [`docs/indicator_spec.md`](docs/indicator_spec.md). Build script and panels are next.
+Pushes to `main` automatically build and deploy via [`.github/workflows/deploy.yml`](.github/workflows/deploy.yml). The same workflow also runs daily on a `cron: '0 13 * * *'` schedule, so the live site refreshes every day after the upstream haver-data parquet updates.
