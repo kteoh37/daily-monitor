@@ -3,6 +3,11 @@ name: Deploy to GitHub Pages
 on:
   push:
     branches: [main]
+  schedule:
+    # Daily at 13:00 UTC — buffers for haver-data's 07:00 server-local pull
+    # plus push propagation, regardless of timezone.
+    - cron: '0 13 * * *'
+  workflow_dispatch:
 
 permissions:
   contents: read
@@ -17,9 +22,30 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout dashboard
+        uses: actions/checkout@v4
 
-      - uses: actions/setup-node@v4
+      - name: Checkout haver-data (public)
+        uses: actions/checkout@v4
+        with:
+          repository: jasonzhixinglu/haver-data
+          path: haver-data
+          ref: main
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+
+      - name: Install Python deps
+        run: pip install -r scripts/requirements.txt
+
+      - name: Build panel JSONs from parquet
+        run: python scripts/build_data.py --haver-data haver-data
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
         with:
           node-version: 20
           cache: npm
