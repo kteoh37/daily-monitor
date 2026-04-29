@@ -213,8 +213,8 @@ export default function ChartsPanel() {
         <RangePicker value={range} onChange={setRange} />
       </div>
 
-      {mode === 'country' && <ByCountryView panels={panels} country={country} cutoff={cutoff} />}
-      {mode === 'theme'   && <ByThemeView   panels={panels} theme={theme} yieldTenor={yieldTenor} cutoff={cutoff} />}
+      {mode === 'country' && <ByCountryView panels={panels} country={country} cutoff={cutoff} range={range} />}
+      {mode === 'theme'   && <ByThemeView   panels={panels} theme={theme} yieldTenor={yieldTenor} cutoff={cutoff} range={range} />}
       {mode === 'spreads' && <SpreadsView   panels={panels} family={spreadFamily} cutoff={cutoff} range={range} />}
     </div>
   )
@@ -279,8 +279,9 @@ function RangePicker({ value, onChange }) {
 
 // ----------------------------------------------------------------------------
 
-function ByCountryView({ panels, country, cutoff }) {
+function ByCountryView({ panels, country, cutoff, range }) {
   const blocks = []
+  const hasYields = !!panels.yields?.rows.some(r => r.country === country)
 
   const yieldRows = panels.yields?.rows.filter(r => r.country === country) ?? []
   if (yieldRows.length) {
@@ -325,6 +326,17 @@ function ByCountryView({ panels, country, cutoff }) {
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+      {hasYields && (
+        <YieldCurveChart
+          panels={panels}
+          countries={[country]}
+          title={`${COUNTRY_LABELS[country] ?? country} — Yield curve`}
+          yLabel="% p.a."
+          comparisonCutoff={cutoff}
+          rangeLabel={range}
+          height={240}
+        />
+      )}
       {blocks.map(b => <ChartCard key={b.key} {...b} cutoff={cutoff} />)}
     </div>
   )
@@ -332,7 +344,7 @@ function ByCountryView({ panels, country, cutoff }) {
 
 // ----------------------------------------------------------------------------
 
-function ByThemeView({ panels, theme, yieldTenor, cutoff }) {
+function ByThemeView({ panels, theme, yieldTenor, cutoff, range }) {
   const panel = panels[theme]
   if (!panel) return <div className="panel p-6 text-sm text-slate-500">No data for {theme}.</div>
 
@@ -359,6 +371,26 @@ function ByThemeView({ panels, theme, yieldTenor, cutoff }) {
     fx: '', equities: 'level', volatility: 'index', commodities_uncertainty: 'level',
   }
 
+  if (theme === 'yields') {
+    const curveCountries = panels.yields
+      ? [...new Set(panels.yields.rows.map(r => r.country))]
+          .sort((a, b) => COUNTRY_ORDER.indexOf(a) - COUNTRY_ORDER.indexOf(b))
+      : []
+    return (
+      <div className="space-y-4">
+        <ChartCard title={title} yLabel={yLabelMap[theme]} series={series} cutoff={cutoff} tall />
+        <YieldCurveChart
+          panels={panels}
+          countries={curveCountries}
+          title="Sovereign yields — curves across countries"
+          yLabel="% p.a."
+          comparisonCutoff={cutoff}
+          rangeLabel={range}
+        />
+      </div>
+    )
+  }
+
   return <ChartCard title={title} yLabel={yLabelMap[theme]} series={series} cutoff={cutoff} tall />
 }
 
@@ -368,7 +400,16 @@ function SpreadsView({ panels, family, cutoff, range }) {
   const cfg = SPREAD_FAMILIES[family]
 
   if (cfg.isYieldCurve) {
-    return <YieldCurveChart panels={panels} comparisonCutoff={cutoff} rangeLabel={range} cfg={cfg} />
+    return (
+      <YieldCurveChart
+        panels={panels}
+        countries={cfg.countries}
+        title={cfg.label}
+        yLabel={cfg.yLabel}
+        comparisonCutoff={cutoff}
+        rangeLabel={range}
+      />
+    )
   }
 
   const series = cfg.countries
@@ -399,7 +440,15 @@ function SpreadsView({ panels, family, cutoff, range }) {
 // One line per country (current). Optionally a dashed comparison line per
 // country when the range picker is set to anything other than MAX.
 
-function YieldCurveChart({ panels, comparisonCutoff, rangeLabel, cfg }) {
+function YieldCurveChart({
+  panels,
+  countries,
+  title = 'Yield curves (snapshot)',
+  yLabel = '% p.a.',
+  comparisonCutoff,
+  rangeLabel,
+  height = 460,
+}) {
   const { isDark } = useDarkMode()
   const t = getTheme(isDark)
 
@@ -412,7 +461,7 @@ function YieldCurveChart({ panels, comparisonCutoff, rangeLabel, cfg }) {
 
     const rows = TENOR_ORDER.map(tenor => {
       const point = { maturity: MATURITY_YEARS[tenor], tenor }
-      for (const c of cfg.countries) {
+      for (const c of countries) {
         const series = panels.yields.rows.find(r => r.country === c && r.label === tenor)
         if (!series?.history?.length) continue
 
@@ -439,7 +488,7 @@ function YieldCurveChart({ panels, comparisonCutoff, rangeLabel, cfg }) {
       latestDate: latestSeen,
       comparisonDate: comparisonSeen,
     }
-  }, [panels, comparisonCutoff, cfg])
+  }, [panels, comparisonCutoff, countries])
 
   const showComparison = comparisonCutoff != null && rangeLabel !== 'MAX'
 
@@ -447,15 +496,15 @@ function YieldCurveChart({ panels, comparisonCutoff, rangeLabel, cfg }) {
     <div className="panel p-4 flex flex-col gap-2">
       <div className="flex items-baseline justify-between gap-3 flex-wrap">
         <span className="text-sm font-medium text-slate-800 dark:text-slate-100">
-          {cfg.label}
+          {title}
           <span className="ml-2 text-xs text-slate-500 dark:text-slate-400 font-normal">
             solid = {latestDate ?? 'latest'}
             {showComparison && <> · dashed = {comparisonDate ?? rangeLabel}</>}
           </span>
         </span>
-        <span className="text-xs text-slate-400 dark:text-slate-500">{cfg.yLabel}</span>
+        <span className="text-xs text-slate-400 dark:text-slate-500">{yLabel}</span>
       </div>
-      <div style={{ width: '100%', height: 460 }}>
+      <div style={{ width: '100%', height }}>
         <ResponsiveContainer>
           <LineChart data={plotData} margin={{ top: 5, right: 15, bottom: 5, left: 0 }}>
             <CartesianGrid stroke={t.ui.grid} strokeDasharray="3 3" vertical={false} />
