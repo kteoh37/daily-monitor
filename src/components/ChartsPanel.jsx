@@ -22,10 +22,10 @@ const PANEL_LABELS = {
 const COUNTRY_LABELS = {
   US: 'United States', JP: 'Japan',     DE: 'Germany',  FR: 'France',
   IT: 'Italy',         UK: 'United Kingdom', CA: 'Canada',  EA: 'Euro Area',
-  CH: 'Switzerland',   KR: 'Korea',     AU: 'Australia',
+  CH: 'Switzerland',   KR: 'Korea',     AU: 'Australia', CN: 'China',
 }
 
-const COUNTRY_ORDER = ['US', 'JP', 'DE', 'FR', 'IT', 'UK', 'CA', 'EA', 'CH', 'KR', 'AU']
+const COUNTRY_ORDER = ['US', 'JP', 'DE', 'FR', 'IT', 'UK', 'CA', 'EA', 'CH', 'KR', 'AU', 'CN']
 
 const PALETTE = [
   '#6366f1', '#0891b2', '#10b981', '#f59e0b', '#ef4444',
@@ -49,7 +49,7 @@ const SPREAD_FAMILIES = {
   curve_slope: {
     label: 'Curve slope (10Y − 2Y)',
     yLabel: 'pp',
-    countries: ['US', 'JP', 'DE', 'FR', 'IT', 'UK', 'CA', 'KR', 'AU'],
+    countries: ['US', 'JP', 'DE', 'FR', 'IT', 'UK', 'CA', 'KR', 'AU', 'CN'],
     build: (panels, c) => makeSpread(
       findYield(panels, c, '10Y'),
       findYield(panels, c, '2Y'),
@@ -58,7 +58,7 @@ const SPREAD_FAMILIES = {
   vs_us: {
     label: 'Sovereign 10Y vs US (XX − US)',
     yLabel: 'pp',
-    countries: ['JP', 'DE', 'FR', 'IT', 'UK', 'CA', 'KR', 'AU'],
+    countries: ['JP', 'DE', 'FR', 'IT', 'UK', 'CA', 'KR', 'AU', 'CN'],
     build: (panels, c) => makeSpread(
       findYield(panels, c, '10Y'),
       findYield(panels, 'US', '10Y'),
@@ -77,7 +77,7 @@ const SPREAD_FAMILIES = {
     label: 'Yield curves (snapshot)',
     yLabel: '% p.a.',
     isYieldCurve: true,
-    countries: ['US', 'JP', 'DE', 'FR', 'IT', 'UK', 'CA', 'KR', 'AU'],
+    countries: ['US', 'JP', 'DE', 'FR', 'IT', 'UK', 'CA', 'KR', 'AU', 'CN'],
   },
 }
 

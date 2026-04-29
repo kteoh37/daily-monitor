@@ -1,6 +1,6 @@
 # Indicator Spec — Daily Market Monitor
 
-Country scope: **US, JP, DE, FR, IT, UK, CA, EA, KR, AU** (G7 + Euro Area aggregate + Korea + Australia).
+Country scope: **US, JP, DE, FR, IT, UK, CA, EA, KR, AU, CN** (G7 + Euro Area aggregate + Korea + Australia + China).
 
 All Haver codes below are confirmed present in the local `haver-data` parquet at the time of writing (2026-04-29).
 

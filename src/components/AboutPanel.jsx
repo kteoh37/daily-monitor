@@ -9,7 +9,7 @@ export default function AboutPanel() {
         </h2>
         <p className="text-sm text-slate-700 dark:text-slate-300 leading-relaxed">
           Country scope: United States, Japan, Germany, France, Italy, United Kingdom, Canada,
-          Euro Area aggregate, Korea, Australia.
+          Euro Area aggregate, Korea, Australia, China.
         </p>
       </div>
 

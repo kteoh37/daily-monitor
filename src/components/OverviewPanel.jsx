@@ -12,7 +12,7 @@ const PANELS = [
 ]
 
 const TENOR_ORDER = ['3M', '1Y', '2Y', '5Y', '10Y', '20Y', '30Y']
-const COUNTRY_ORDER = ['US', 'JP', 'DE', 'FR', 'IT', 'UK', 'CA', 'EA', 'CH', 'KR', 'AU', '--']
+const COUNTRY_ORDER = ['US', 'JP', 'DE', 'FR', 'IT', 'UK', 'CA', 'EA', 'CH', 'KR', 'AU', 'CN', '--']
 
 function fetchPanel(key, base) {
   return fetch(`${base}data/${key}.json`).then(r => {

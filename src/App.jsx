@@ -47,7 +47,7 @@ export default function App() {
             <h1 className="text-base font-semibold text-slate-900 dark:text-white leading-tight">
               Daily Market Monitor — Japan &amp; G7
             </h1>
-            <p className="text-xs text-slate-500 mt-0.5">G7 + EA + Korea + Australia · sourced from haver-data</p>
+            <p className="text-xs text-slate-500 mt-0.5">G7 + EA + Korea + Australia + China · sourced from haver-data</p>
           </div>
           <div className="flex items-start gap-2 flex-shrink-0">
             <nav className="grid grid-cols-3 gap-1.5 sm:flex sm:flex-wrap">

@@ -89,6 +89,14 @@ PANELS = {
             ('AU', '10Y', 'r193ma@intdaily'),
             ('AU', '20Y', 'r193mk@intdaily'),
             ('AU', '30Y', 'r193mt@intdaily'),
+            # China — 3M is offshore HKD-deliverable cash deposit (no onshore T-bill series)
+            ('CN', '3M',  'f924m3m@intdaily'),
+            ('CN', '1Y',  'r924m1y@intdaily'),
+            ('CN', '2Y',  'r924m2y@intdaily'),
+            ('CN', '5Y',  'r924m5y@intdaily'),
+            ('CN', '10Y', 'r924ma@intdaily'),
+            ('CN', '20Y', 'r924mk@intdaily'),
+            ('CN', '30Y', 'r924mt@intdaily'),
         ],
     },
     'breakevens': {
@@ -114,6 +122,7 @@ PANELS = {
             ('CA', 'CAD/USD',    'x111caj@intdaily'),
             ('AU', 'AUD/USD',    'x111auj@intdaily'),
             ('KR', 'KRW/USD',    'x111krj@intdaily'),
+            ('CN', 'CNY/USD',    'x111cnj@intdaily'),
             ('US', 'WSJ Dollar', 'fxwsj@daily'),
         ],
     },
@@ -130,6 +139,7 @@ PANELS = {
             ('CH', 'SMI',             's146smi@intdaily'),
             ('AU', 'All Ordinaries',  's193aor@intdaily'),
             ('KR', 'KOSPI',           's542cex@intdaily'),
+            ('CN', 'CSI 300',         's924sh3@intdaily'),
         ],
     },
     'volatility': {
@@ -154,6 +164,7 @@ PANELS = {
             ('AU', 'RBA cash',      'r193rtr@intdaily'),
             ('KR', 'BoK base',      'r542rd@intdaily'),
             ('EA', 'ECB MRO',       'r023rm@intdaily'),
+            ('CN', 'PBoC 7d RR',    'r9247dv@intdaily'),
         ],
     },
     'overnight_rates': {

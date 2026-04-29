@@ -2,7 +2,7 @@
 
 **Live dashboard:** https://kteoh37.github.io/daily-monitor/
 
-Interactive dashboard for daily monitoring of key market indicators across **G7 + Euro Area + Korea + Australia** (10 jurisdictions).
+Interactive dashboard for daily monitoring of key market indicators across **G7 + Euro Area + Korea + Australia + China** (11 jurisdictions).
 
 Sourced from Haver Analytics via the [haver-data](https://github.com/jasonzhixinglu/haver-data) pipeline (refreshed daily).
 
@@ -20,7 +20,7 @@ The build script reads the local `haver-data` clone, applies standard transforms
 
 ## Country scope
 
-US | JP | DE | FR | IT | UK | CA | EA | KR | AU
+US | JP | DE | FR | IT | UK | CA | EA | KR | AU | CN
 
 ## Local development
 
