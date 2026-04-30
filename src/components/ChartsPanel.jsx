@@ -150,6 +150,9 @@ export default function ChartsPanel() {
   const [yieldTenor, setYieldTenor] = useState('10Y')
   const [spreadFamily, setSpreadFamily] = useState('curve_slope')
   const [range, setRange]           = useState('5Y')
+  // Per-theme series selection. Key = theme name, value = Set<seriesCode>.
+  // Absent key (or null) means "all series visible".
+  const [selectedByTheme, setSelectedByTheme] = useState({})
 
   useEffect(() => {
     const base = import.meta.env.BASE_URL
@@ -214,7 +217,26 @@ export default function ChartsPanel() {
       </div>
 
       {mode === 'country' && <ByCountryView panels={panels} country={country} cutoff={cutoff} range={range} />}
-      {mode === 'theme'   && <ByThemeView   panels={panels} theme={theme} yieldTenor={yieldTenor} cutoff={cutoff} range={range} />}
+      {mode === 'theme'   && (
+        <ByThemeView
+          panels={panels}
+          theme={theme}
+          yieldTenor={yieldTenor}
+          cutoff={cutoff}
+          range={range}
+          selectedSet={selectedByTheme[theme] ?? null}
+          onToggleSeries={(code, allCodes) => {
+            setSelectedByTheme(prev => {
+              const cur = prev[theme] ?? new Set(allCodes)
+              const next = new Set(cur)
+              if (next.has(code)) next.delete(code); else next.add(code)
+              return { ...prev, [theme]: next }
+            })
+          }}
+          onSelectAll={(allCodes) => setSelectedByTheme(prev => ({ ...prev, [theme]: new Set(allCodes) }))}
+          onClearAll={() => setSelectedByTheme(prev => ({ ...prev, [theme]: new Set() }))}
+        />
+      )}
       {mode === 'spreads' && <SpreadsView   panels={panels} family={spreadFamily} cutoff={cutoff} range={range} />}
     </div>
   )
@@ -344,7 +366,7 @@ function ByCountryView({ panels, country, cutoff, range }) {
 
 // ----------------------------------------------------------------------------
 
-function ByThemeView({ panels, theme, yieldTenor, cutoff, range }) {
+function ByThemeView({ panels, theme, yieldTenor, cutoff, range, selectedSet, onToggleSeries, onSelectAll, onClearAll }) {
   const panel = panels[theme]
   if (!panel) return <div className="panel p-6 text-sm text-slate-500">No data for {theme}.</div>
 
@@ -356,10 +378,24 @@ function ByThemeView({ panels, theme, yieldTenor, cutoff, range }) {
 
   if (!rows.length) return <div className="panel p-6 text-sm text-slate-500">No matching series.</div>
 
-  const series = rows.map((r, i) => ({
+  // Stable per-row identity = the underlying Haver code (unique within the panel)
+  const allCodes = rows.map(r => r.series)
+  const isSelected = (code) => selectedSet === null ? true : selectedSet.has(code)
+
+  // Each row gets a fixed color based on its position, regardless of selection state,
+  // so toggling a series off doesn't recolor the others.
+  const decorated = rows.map((r, i) => ({
+    ...r,
+    color: PALETTE[i % PALETTE.length],
+    selected: isSelected(r.series),
+  }))
+
+  const visible = decorated.filter(r => r.selected)
+
+  const series = visible.map(r => ({
     key: `${r.country} ${r.label}`,
     history: r.history,
-    color: PALETTE[i % PALETTE.length],
+    color: r.color,
   }))
 
   const title = theme === 'yields'
@@ -371,27 +407,77 @@ function ByThemeView({ panels, theme, yieldTenor, cutoff, range }) {
     fx: '', equities: 'level', volatility: 'index', commodities_uncertainty: 'level',
   }
 
+  const picker = (
+    <SeriesPicker
+      rows={decorated}
+      onToggle={(code) => onToggleSeries(code, allCodes)}
+      onAll={() => onSelectAll(allCodes)}
+      onClear={onClearAll}
+    />
+  )
+
   if (theme === 'yields') {
-    const curveCountries = panels.yields
-      ? [...new Set(panels.yields.rows.map(r => r.country))]
-          .sort((a, b) => COUNTRY_ORDER.indexOf(a) - COUNTRY_ORDER.indexOf(b))
-      : []
+    const curveCountries = visible.map(r => r.country)
     return (
       <div className="space-y-4">
-        <ChartCard title={title} yLabel={yLabelMap[theme]} series={series} cutoff={cutoff} tall />
-        <YieldCurveChart
-          panels={panels}
-          countries={curveCountries}
-          title="Sovereign yields — curves across countries"
-          yLabel="% p.a."
-          comparisonCutoff={cutoff}
-          rangeLabel={range}
-        />
+        {picker}
+        {series.length
+          ? <ChartCard title={title} yLabel={yLabelMap[theme]} series={series} cutoff={cutoff} tall />
+          : <div className="panel p-6 text-sm text-slate-500">No series selected.</div>}
+        {curveCountries.length > 0 && (
+          <YieldCurveChart
+            panels={panels}
+            countries={curveCountries}
+            title="Sovereign yields — curves across countries"
+            yLabel="% p.a."
+            comparisonCutoff={cutoff}
+            rangeLabel={range}
+          />
+        )}
       </div>
     )
   }
 
-  return <ChartCard title={title} yLabel={yLabelMap[theme]} series={series} cutoff={cutoff} tall />
+  return (
+    <div className="space-y-4">
+      {picker}
+      {series.length
+        ? <ChartCard title={title} yLabel={yLabelMap[theme]} series={series} cutoff={cutoff} tall />
+        : <div className="panel p-6 text-sm text-slate-500">No series selected.</div>}
+    </div>
+  )
+}
+
+// Strip of toggle chips — one per row, color-coded to match its line.
+function SeriesPicker({ rows, onToggle, onAll, onClear }) {
+  return (
+    <div className="panel p-3 flex flex-wrap items-center gap-1.5">
+      <span className="text-xs text-slate-500 mr-1">Series</span>
+      {rows.map(r => (
+        <button
+          key={r.series}
+          onClick={() => onToggle(r.series)}
+          className={`text-xs px-2 py-0.5 rounded border transition-colors flex items-center gap-1.5 ${
+            r.selected
+              ? 'bg-white text-slate-800 border-slate-300 shadow-sm dark:bg-slate-800 dark:text-slate-100 dark:border-slate-600'
+              : 'bg-transparent text-slate-400 border-slate-200 dark:text-slate-600 dark:border-slate-700 hover:text-slate-600 dark:hover:text-slate-300'
+          }`}
+          title={`${r.country} · ${r.label}${r.selected ? '' : ' (hidden)'}`}
+        >
+          <span
+            className="inline-block w-2 h-2 rounded-full shrink-0"
+            style={{ background: r.selected ? r.color : 'transparent', border: `1.5px solid ${r.color}` }}
+          />
+          <span className="font-medium">{r.country}</span>
+          <span className="text-slate-400 dark:text-slate-500">{r.label}</span>
+        </button>
+      ))}
+      <span className="ml-auto flex gap-1">
+        <button onClick={onAll} className="text-xs px-2 py-0.5 rounded text-slate-500 hover:text-slate-800 dark:hover:text-slate-200">All</button>
+        <button onClick={onClear} className="text-xs px-2 py-0.5 rounded text-slate-500 hover:text-slate-800 dark:hover:text-slate-200">Clear</button>
+      </span>
+    </div>
+  )
 }
 
 // ----------------------------------------------------------------------------
