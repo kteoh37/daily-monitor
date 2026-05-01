@@ -4,9 +4,11 @@ on:
   push:
     branches: [main]
   schedule:
-    # Daily at 13:00 UTC — buffers for haver-data's 07:00 server-local pull
-    # plus push propagation, regardless of timezone.
+    # Twice daily, at 13:00 and 22:00 UTC. The upstream haver-data auto-pull
+    # runs at ~07:00 server-local (~12:00 UTC) but on some days only pushes
+    # later in the afternoon — the 22:00 UTC firing catches those.
     - cron: '0 13 * * *'
+    - cron: '0 22 * * *'
   workflow_dispatch:
 
 permissions:
