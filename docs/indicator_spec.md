@@ -37,7 +37,7 @@ Yield curve points: 3M, 1Y, 2Y, 5Y, 10Y, 20Y, 30Y. All `@intdaily` unless noted.
 - CA `r156fbv@intdaily`
 - AU `r193fbv@intdaily`
 - KR `r542fbv@intdaily`
-- UK `r112yaa@intdaily` — *proxy: 10Y implied forward inflation rate (not a true BEI but the closest series available)*
+- UK — **no true BEI available**, leave gap (10Y forward inflation proxy removed).
 - IT — **no series available**, leave gap.
 
 ### 3. FX (daily, vs USD)
@@ -130,7 +130,7 @@ One file per panel, e.g. `public/data/yields.json`:
 All codes in this spec confirmed present in `data/data.parquet` except:
 - **US 10Y/20Y/30Y in `intdaily`** — not available; use `fcm10/20/30@daily` instead (now reflected above).
 - **Italy 10Y BEI** — no inflation-linked BTP / BEI series in parquet. Gap left as-is.
-- **UK 10Y BEI** — true BEI not available; using `r112yaa@intdaily` (10Y implied forward inflation) as proxy.
+- **UK 10Y BEI** — no true BEI available; row omitted (forward-inflation proxy removed).
 
 ## Open items
 - Decide on EA aggregate proxy (Bund or composite)
