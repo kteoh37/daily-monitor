@@ -65,14 +65,105 @@ export default function OverviewPanel() {
       </div>
 
       {PANELS.map(p => (
-        <PanelBlock
-          key={p.key}
-          panel={panels[p.key]}
-          title={p.label}
-          layout={p.layout}
-          colorBy={colorBy}
-        />
+        <div key={p.key} className="space-y-5">
+          <PanelBlock
+            panel={panels[p.key]}
+            title={p.label}
+            layout={p.layout}
+            colorBy={colorBy}
+          />
+          {p.key === 'yields' && panels.yields && (
+            <YieldChangePanel panel={panels.yields} />
+          )}
+        </div>
       ))}
+    </div>
+  )
+}
+
+function YieldChangePanel({ panel }) {
+  const tenors = ['10Y', '30Y']
+  const horizons = [
+    { key: 'chg_1d',  label: '1d'  },
+    { key: 'chg_5d',  label: '5d'  },
+    { key: 'chg_21d', label: '21d' },
+  ]
+  const { byCountry, countries } = useMemo(() => {
+    const byCountry = {}
+    panel.rows.forEach(r => {
+      if (!tenors.includes(r.label)) return
+      if (!byCountry[r.country]) byCountry[r.country] = {}
+      byCountry[r.country][r.label] = r
+    })
+    const countries = COUNTRY_ORDER.filter(c => byCountry[c])
+    return { byCountry, countries }
+  }, [panel.rows])
+
+  return (
+    <div className="panel p-4">
+      <div className="flex items-baseline justify-between mb-3">
+        <h3 className="text-sm font-semibold text-slate-800 dark:text-slate-100">
+          Sovereign yield changes — 10Y &amp; 30Y
+        </h3>
+        <span className="label">{panel.vintage} · pp change</span>
+      </div>
+      <div className="overflow-x-auto -mx-2 px-2">
+        <table className="w-full text-xs tabular-nums">
+          <thead>
+            <tr className="text-slate-500">
+              <th rowSpan={2} className="font-normal px-2 py-1.5 text-left align-bottom">Country</th>
+              {tenors.map(t => (
+                <th
+                  key={t}
+                  colSpan={horizons.length}
+                  className="font-normal px-2 py-1.5 text-center border-l border-slate-200/60 dark:border-slate-800/60"
+                >
+                  {t}
+                </th>
+              ))}
+            </tr>
+            <tr className="text-slate-500">
+              {tenors.flatMap((t, ti) =>
+                horizons.map((h, hi) => (
+                  <th
+                    key={`${t}-${h.key}`}
+                    className={`font-normal px-2 py-1.5 text-right ${hi === 0 ? 'border-l border-slate-200/60 dark:border-slate-800/60' : ''}`}
+                  >
+                    {h.label}
+                  </th>
+                ))
+              )}
+            </tr>
+          </thead>
+          <tbody>
+            {countries.map(c => (
+              <tr key={c} className="border-t border-slate-200/60 dark:border-slate-800/60">
+                <td className="px-2 py-1.5">
+                  <span className="inline-block min-w-[1.75rem] text-center text-[10px] font-semibold tracking-wide rounded px-1 py-0.5 bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300">{c}</span>
+                </td>
+                {tenors.flatMap(t => {
+                  const r = byCountry[c][t]
+                  return horizons.map((h, hi) => {
+                    const borderCls = hi === 0 ? 'border-l border-slate-200/60 dark:border-slate-800/60' : ''
+                    if (!r) return (
+                      <td key={`${t}-${h.key}`} className={`px-2 py-1.5 text-right text-slate-300 dark:text-slate-700 ${borderCls}`}>—</td>
+                    )
+                    return (
+                      <td
+                        key={`${t}-${h.key}`}
+                        className={`px-2 py-1.5 text-right font-mono ${changeColorClass(r[h.key])} ${borderCls}`}
+                        title={`${c} ${t} ${h.label}: ${fmtChange(r[h.key], 'pp')}\nlatest ${r.latest_date}: ${fmtLevel(r.latest)}`}
+                      >
+                        {fmtChange(r[h.key], 'pp')}
+                      </td>
+                    )
+                  })
+                })}
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
     </div>
   )
 }

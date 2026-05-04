@@ -106,7 +106,6 @@ PANELS = {
             ('JP', '10Y BEI',         'r158fbv@intdaily'),
             ('DE', '10Y BEI',         'r134fbv@intdaily'),
             ('FR', '10Y BEI',         'r132fbv@intdaily'),
-            ('UK', '10Y fwd infl*',   'r112yaa@intdaily'),  # proxy, not true BEI
             ('CA', '10Y BEI',         'r156fbv@intdaily'),
             ('AU', '10Y BEI',         'r193fbv@intdaily'),
             ('KR', '10Y BEI',         'r542fbv@intdaily'),

@@ -67,7 +67,7 @@ const SPREAD_FAMILIES = {
   real_rate: {
     label: 'Ex-ante 10Y real rate (nominal − BEI)',
     yLabel: '% p.a.',
-    countries: ['US', 'JP', 'DE', 'FR', 'UK', 'CA', 'KR', 'AU'],
+    countries: ['US', 'JP', 'DE', 'FR', 'CA', 'KR', 'AU'],
     build: (panels, c) => makeSpread(
       findYield(panels, c, '10Y'),
       findBEI(panels, c),
