@@ -27,12 +27,15 @@ jobs:
       - name: Checkout dashboard
         uses: actions/checkout@v4
 
-      - name: Checkout haver-data (public)
+      - name: Checkout haver-data (private)
         uses: actions/checkout@v4
         with:
           repository: jasonzhixinglu/haver-data
           path: haver-data
           ref: main
+          # PAT with read access to jasonzhixinglu/haver-data.
+          # Stored as repo secret HAVER_DATA_TOKEN — see README "Deployment" section.
+          token: ${{ secrets.HAVER_DATA_TOKEN }}
 
       - name: Set up Python
         uses: actions/setup-python@v5
