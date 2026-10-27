@@ -102,7 +102,7 @@ def render(state):
                 f'<p class="source">{esc(item["source"])} · Latest observation: {esc(item["latest"])} · Status: {esc(item["status"])}'
                 f' · New periods: {esc(item.get("new_periods") if item.get("new_periods") is not None else "baseline established")} · Prior history revised: {esc(item.get("prior_history_revised","unknown"))}'
                 f' · Last successful check: {esc(item.get("last_success","historical seed"))}{vintage}</p>'
-                f'<p>{"Stale input: observation age exceeds expected publication tolerance. " if item.get("stale") else ""}'
+                f'<p>{"Stale or retained input: check the observation date and last successful check. " if item.get("stale") else ""}'
                 f'{"Refresh failed; previous complete chart retained. " if item.get("failed") else ""}</p>'
                 f'<a href="{esc(c["file"])}"><img src="{esc(c["file"])}" alt="{esc(c["title"])}" loading="lazy"></a></section>')
     template=(ROOT/'scripts/portfolio-report-template.html').read_text()
