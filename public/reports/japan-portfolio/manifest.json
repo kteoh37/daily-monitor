@@ -1,13 +1,13 @@
 {
   "schema_version": 1,
   "mode": "live-source-check",
-  "attempted_at_utc": "2026-10-27T14:50:57.564623+00:00",
+  "attempted_at_utc": "2026-10-27T14:54:31.763663+00:00",
   "components": {
     "MOF": {
       "latest": "2026-10-17",
       "fingerprint": "c037406668b9ef9fd17228e8c2fe0a3fec51cb96a19bca893414b3fd716a648b",
-      "status": "initialized",
-      "new_periods": null,
+      "status": "unchanged",
+      "new_periods": 0,
       "prior_history_revised": false,
       "cards": [
         {
@@ -25,14 +25,14 @@
       "source_url": "https://www.mof.go.jp/policy/international_policy/reference/itn_transactions_in_securities/week.csv",
       "source_final_update": "Final Update  October  22 , 2026",
       "stale": false,
-      "last_success": "2026-10-27T14:50:57.564623+00:00",
+      "last_success": "2026-10-27T14:54:31.763663+00:00",
       "failed": false
     },
     "JSDA": {
       "latest": "2026-09-30",
       "fingerprint": "849f9216de8975d30d320634e2a4f65de54b7b8e08f59e0f2b822366e45f5a83",
-      "status": "initialized",
-      "new_periods": null,
+      "status": "unchanged",
+      "new_periods": 0,
       "prior_history_revised": false,
       "cards": [
         {
@@ -45,7 +45,7 @@
       "source_commit": "42b22b98e51902a61cbb7ae62354f2d2f31cd6ed",
       "snapshot_utc": "2026-10-27T14:45:32+00:00",
       "stale": false,
-      "last_success": "2026-10-27T14:50:57.564623+00:00",
+      "last_success": "2026-10-27T14:54:31.763663+00:00",
       "failed": false
     }
   },
