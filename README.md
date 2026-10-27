@@ -8,7 +8,23 @@ Interactive dashboard for daily monitoring of key market indicators across **G7 
 
 Standalone interactive JGB yield and yen charts from January 2022 through October 26, 2026,
 with color-coded policy events, sourced descriptions, and selection/methodology notes.
-This report is a dated Haver snapshot and is not refreshed by the dashboard's daily data job.
+Every deployment refreshes both report series from `kteoh37/haver-dataset`, preserving
+the curated event dates, descriptions, classifications, colors and FXI verification notes.
+The report displays each series' latest observation and its source revision. Event research
+remains dated through October 26, 2026; new announcements require an editorial update.
+The existing twice-daily deployment schedule (13:00 and 22:00 UTC) refreshes this report too.
+The `HAVER_DATA_TOKEN` secret must have Contents: Read access to both Haver source repos.
+
+Refresh the report locally:
+
+```bash
+python scripts/refresh_policy_report.py --haver-data ../haver-dataset --source-commit <revision>
+```
+
+The committed report HTML is the editorial source. The workflow changes chart values,
+marker heights and data-availability labels only in the deployment build, without committing
+generated data. Missing exact series, lost annotated dates, non-finite values or a source
+ending before the report's existing observations fail the build rather than publish a shorter history.
 
 Sourced from Haver Analytics via the [haver-data](https://github.com/jasonzhixinglu/haver-data) pipeline (refreshed daily).
 

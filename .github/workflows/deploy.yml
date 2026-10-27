@@ -43,11 +43,26 @@ jobs:
           python-version: '3.12'
           cache: pip
 
+      - name: Checkout Japan policy report Haver data (private)
+        uses: actions/checkout@v4
+        with:
+          repository: kteoh37/haver-dataset
+          path: policy-haver-data
+          ref: main
+          token: ${{ secrets.HAVER_DATA_TOKEN }}
+
       - name: Install Python deps
         run: pip install -r scripts/requirements.txt
 
       - name: Build panel JSONs from parquet
         run: python scripts/build_data.py --haver-data haver-data
+
+      - name: Refresh Japan policy report series
+        shell: bash
+        run: |
+          python scripts/test_refresh_policy_report.py
+          POLICY_SOURCE_REVISION=$(git -C policy-haver-data rev-parse HEAD)
+          python scripts/refresh_policy_report.py --haver-data policy-haver-data --source-commit "$POLICY_SOURCE_REVISION"
 
       - name: Set up Node
         uses: actions/setup-node@v4
