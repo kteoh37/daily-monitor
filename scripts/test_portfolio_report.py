@@ -12,7 +12,7 @@ class PortfolioTests(unittest.TestCase):
   b=report.compare_periods({'2026-01-01':[1]},a);self.assertEqual(b['status'],'unchanged')
   c=report.compare_periods({'2026-01-01':[1],'2026-01-08':[2]},a);self.assertEqual(c['status'],'new');self.assertEqual(c['new_periods'],1)
   d=report.compare_periods({'2026-01-01':[3],'2026-01-08':[2]},a);self.assertEqual(d['status'],'revised');self.assertTrue(d['prior_history_revised'])
- def test_calendar_window_and_separate_overall_total(self):
+ def test_calendar_window_and_direct_others_with_descriptor_fallback(self):
   import io
   import pandas as pd
   import portfolio_jsda as jsda
@@ -21,8 +21,8 @@ class PortfolioTests(unittest.TestCase):
   for sector in jsda.SECTORS:
    for maturity in jsda.MATURITIES:
     for action,value,word in [('P',2.,'purchases'),('S',1.,'sales')]:
-     code=f'GB{maturity}{sector}{action}@JAPAN';columns[code]=[value if sector else value*6]*8
-     metadata.append({'Series Code':code,'Series Name':f'{word} (100 Mil.Yen)','shortsource':'JSDA','frequency':'M'})
+     code=f'GB{maturity}{sector}{action}@JAPAN';columns[code]=[value]*8
+     metadata.append({'Series Code':code,'Series Name':None if sector=='O' else f'{word} (100 Mil.Yen)','descriptor':f'{word} of '+{'S':'super long term','L':'long term','M':'medium term'}[maturity]+' government bonds: Others (100 Mil.Yen)','shortsource':'JSDA','frequency':'M'})
   data=pd.DataFrame(columns,index=months);meta=pd.DataFrame(metadata)
   def encode(frame):
    out=io.BytesIO();frame.to_parquet(out);return out.getvalue()
@@ -33,21 +33,26 @@ class PortfolioTests(unittest.TestCase):
    jsda.calculate(encode(data),encode(badmeta),5)
   frame=jsda.calculate(encode(data),encode(meta),5)
   totals=frame[(frame.month==months[-1])&frame.maturity.eq('All coupon-bearing JGBs')]
-  self.assertEqual(len(totals),7)
+  self.assertEqual(len(totals),6)
   shown=totals[totals.sector.isin(jsda.DISPLAY_SECTORS)]
   self.assertEqual(len(shown),6)
   self.assertTrue((shown.rolling_net_trillion_yen==.0015).all())
-  fields=['purchases_100million_yen','sales_100million_yen','net_100million_yen','rolling_net_trillion_yen']
-  for (month,maturity),group in frame.groupby(['month','maturity']):
-   overall=group[group.sector.eq(jsda.OVERALL_LABEL)].iloc[0]
-   displayed=group[group.sector.isin(jsda.DISPLAY_SECTORS)]
-   for field in fields:
-    expected=overall[field]
-    if pd.notna(expected):self.assertAlmostEqual(displayed[field].sum(min_count=6),expected)
+  # Descriptor fallback still validates units, transaction and the precise Others category.
+  for descriptor in ['purchases super long term Others (USD)', 'sales super long term Others (100 Mil.Yen)', 'purchases super long term Total (100 Mil.Yen)', None]:
+   bad=meta.copy();bad.loc[bad['Series Code'].eq('GBSOP@JAPAN'),'descriptor']=descriptor
+   with self.assertRaises(ValueError):jsda.calculate(encode(data),encode(bad),5)
+  wrong_maturity=meta.copy();wrong_maturity.loc[wrong_maturity['Series Code'].eq('GBLOP@JAPAN'),'descriptor']='purchases super long term Others (100 Mil.Yen)'
+  with self.assertRaises(ValueError):jsda.calculate(encode(data),encode(wrong_maturity),5)
+  # Overall columns are deliberately ignored; no residual can be substituted.
+  with_totals=data.copy()
+  for maturity in jsda.MATURITIES:
+   with_totals[f'GB{maturity}P@JAPAN']=10000.
+   with_totals[f'GB{maturity}S@JAPAN']=1.
+  pd.testing.assert_frame_equal(frame,jsda.calculate(encode(with_totals),encode(meta),5))
   missing=data.copy();missing.iloc[4,1]=float('nan')
   incomplete=jsda.calculate(encode(missing),encode(meta),5)
-  residual=incomplete[incomplete.sector.eq(jsda.RESIDUAL_LABEL)&incomplete.month.eq(months[4])]
-  self.assertTrue(residual.rolling_net_trillion_yen.isna().any())
+  affected=incomplete[incomplete.month.eq(months[4])]
+  self.assertTrue(affected.rolling_net_trillion_yen.isna().any())
   # A missing calendar month must invalidate windows, never collapse to five observations.
   gap=jsda.calculate(encode(data.drop(months[4])),encode(meta),5)
   self.assertTrue(gap[gap.month==months[-1]].rolling_net_trillion_yen.isna().all())

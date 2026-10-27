@@ -16,7 +16,7 @@ for component in state['components'].values():
 if '<script' in (FOLDER/'index.html').read_text().lower():raise ValueError('Portfolio HTML must contain prose and images only')
 
 jsda=state['components']['JSDA']
-if jsda.get('definition') != 'five-sectors-plus-residual-v1':raise ValueError('JSDA report must use the residual definition')
-if 'All other categories (residual)' not in jsda['cards'][0]['description'] or 'Overall total (all investor categories):' in jsda['cards'][0]['description']:raise ValueError('JSDA description does not match residual chart')
+if jsda.get('definition') != 'five-sectors-plus-jsda-others-v1':raise ValueError('JSDA report must use the formal JSDA Others definition')
+if 'Others (JSDA category)' not in jsda['cards'][0]['description'] or 'All other categories (residual)' in jsda['cards'][0]['description'] or 'Overall total (all investor categories):' in jsda['cards'][0]['description']:raise ValueError('JSDA description does not match formal JSDA Others chart')
 
 print('Approved export: three PNGs, HTML descriptions, compact display manifest; no raw snapshot or state history.')
