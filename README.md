@@ -4,6 +4,12 @@
 
 Interactive dashboard for daily monitoring of key market indicators across **G7 + Euro Area + Korea + Australia + China** (11 jurisdictions).
 
+**Japan policy report:** https://kteoh37.github.io/daily-monitor/reports/japan-policy-events.html
+
+Standalone interactive JGB yield and yen charts from January 2022 through October 26, 2026,
+with color-coded policy events, sourced descriptions, and selection/methodology notes.
+This report is a dated Haver snapshot and is not refreshed by the dashboard's daily data job.
+
 Sourced from Haver Analytics via the [haver-data](https://github.com/jasonzhixinglu/haver-data) pipeline (refreshed daily).
 
 ## Stack

@@ -50,7 +50,7 @@ export default function App() {
             <p className="text-xs text-slate-500 mt-0.5">G7 + EA + Korea + Australia + China · sourced from haver-data</p>
           </div>
           <div className="flex items-start gap-2 flex-shrink-0">
-            <nav className="grid grid-cols-3 gap-1.5 sm:flex sm:flex-wrap">
+            <nav className="grid grid-cols-2 gap-1.5 sm:flex sm:flex-wrap">
               {TABS.map(tab => (
                 <button
                   key={tab.id}
@@ -65,6 +65,13 @@ export default function App() {
                   }`}>{tab.sub}</div>
                 </button>
               ))}
+              <a
+                href={`${import.meta.env.BASE_URL}reports/japan-policy-events.html`}
+                className="tab-btn tab-btn-inactive text-center sm:text-left px-2 py-2 text-xs sm:px-5 sm:py-2.5 sm:text-sm leading-tight"
+              >
+                <div>Japan policy</div>
+                <div className="text-xs mt-0.5 font-normal hidden sm:block text-slate-400 dark:text-slate-600">JGB yields · Yen · Events</div>
+              </a>
             </nav>
             <button
               onClick={toggle}
