@@ -8,6 +8,9 @@ sparkline.
 
 Usage:
     python scripts/build_data.py --haver-data ../haver-data
+    python scripts/build_data.py --haver-dataset ../snapshot --source-commit FULL_SHA
+
+Wide-format migration requires exact native-daily coverage before output is written.
 """
 import argparse
 import json
@@ -202,6 +205,74 @@ def load_long_data(parquet_path: Path) -> pd.DataFrame:
     return df
 
 
+def load_frequency_snapshot(folder: Path, source_commit: str):
+    """Adapt exact daily codes from one pinned wide snapshot; never substitute."""
+    import re
+    if not re.fullmatch(r'[0-9a-f]{40}', source_commit):
+        raise ValueError('A full immutable --source-commit is required')
+    provenance_file = folder / 'snapshot_commit.json'
+    if provenance_file.exists():
+        provenance = json.loads(provenance_file.read_text())
+        if provenance.get('repository') != 'kteoh37/haver-dataset' or provenance.get('commit') != source_commit:
+            raise ValueError('Snapshot provenance disagrees with --source-commit')
+    else:
+        import subprocess
+        actual = subprocess.run(['git', '-C', str(folder), 'rev-parse', 'HEAD'],
+                                capture_output=True, text=True, check=True).stdout.strip()
+        dirty = subprocess.run(['git', '-C', str(folder), 'status', '--porcelain', '--untracked-files=no'],
+                               capture_output=True, text=True, check=True).stdout.strip()
+        if actual != source_commit or dirty:
+            raise ValueError('Source checkout must be clean and pinned to --source-commit')
+    manifest = json.loads((folder / 'snapshot_manifest.json').read_text())
+    if not manifest.get('snapshot_utc'):
+        raise ValueError('Snapshot timestamp is missing')
+    metadata = pd.read_parquet(folder / 'haver_metadata_daily.parquet')
+    wide = pd.read_parquet(folder / 'haver_output_daily.parquet')
+    required = {'Series Code', 'frequency', 'descriptor', 'database'}
+    if not required.issubset(metadata.columns):
+        raise ValueError('Missing required Haver metadata columns')
+    if not isinstance(wide.index, pd.DatetimeIndex) or wide.index.has_duplicates or not wide.index.is_monotonic_increasing:
+        raise ValueError('Snapshot requires unique, ordered daily dates')
+    if metadata['Series Code'].isna().any():
+        raise ValueError('Metadata has null series codes')
+    codes = metadata['Series Code'].astype(str).str.upper()
+    columns = pd.Index([str(c).upper() for c in wide.columns])
+    if codes.duplicated().any() or columns.duplicated().any():
+        raise ValueError('Ambiguous case-insensitive series codes')
+    if set(codes) != set(columns):
+        raise ValueError('Metadata and data series codes disagree')
+    catalog = metadata.set_index(codes)
+    column_map = dict(zip(columns, wide.columns))
+    coverage, parts = [], []
+    for panel, cfg in PANELS.items():
+        for country, label, code in cfg['rows']:
+            key = code.upper()
+            row = {'panel': panel, 'country': country, 'label': label, 'series': code}
+            if key not in catalog.index:
+                row['status'] = 'missing'
+            else:
+                meta = catalog.loc[key]
+                frequency = str(meta['frequency']).upper()
+                row.update(native_frequency=frequency, descriptor=str(meta['descriptor']))
+                if str(meta['database']).upper() != key.split('@')[1]:
+                    raise ValueError(f'Metadata database mismatch for {code}')
+                if frequency != 'D':
+                    row['status'] = 'non_daily'
+                else:
+                    values = pd.to_numeric(wide[column_map[key]], errors='raise').dropna()
+                    if not np.isfinite(values.to_numpy()).all():
+                        raise ValueError(f'Non-finite observations for {code}')
+                    row['status'] = 'exact' if not values.empty else 'empty'
+                    if not values.empty:
+                        parts.append(pd.DataFrame({'date': values.index, 'value': values.to_numpy(),
+                                                   'code': code, 'frequency': 'D'}))
+            coverage.append(row)
+    frame = pd.concat(parts, ignore_index=True) if parts else pd.DataFrame(columns=['date','value','code','frequency'])
+    source = {'repository': 'kteoh37/haver-dataset', 'commit': source_commit,
+              'snapshot_utc': manifest['snapshot_utc']}
+    return frame, coverage, source
+
+
 def build_row(s: pd.Series, country: str, label: str, code: str, change_type: str) -> dict:
     """Compute summary stats and history window for a single series."""
     s = s.dropna().sort_index()
@@ -279,22 +350,36 @@ def build_panel(df: pd.DataFrame, panel_name: str, panel_cfg: dict) -> dict:
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument('--haver-data', required=True, help='Path to local haver-data clone')
+    inputs = parser.add_mutually_exclusive_group(required=True)
+    inputs.add_argument('--haver-data', help='Legacy long-format haver-data clone')
+    inputs.add_argument('--haver-dataset', type=Path, help='Pinned wide-format kteoh37/haver-dataset snapshot')
+    parser.add_argument('--source-commit', help='Full immutable source SHA, required with --haver-dataset')
+    parser.add_argument('--coverage-report', type=Path, help='Local diagnostic JSON; never publish raw source metadata')
     parser.add_argument('--out-dir', default='public/data', help='Output directory for JSON panels')
     args = parser.parse_args()
 
-    parquet_path = Path(args.haver_data) / 'data' / 'data.parquet'
-    if not parquet_path.exists():
-        raise FileNotFoundError(f'Parquet not found: {parquet_path}')
-
+    source = None
+    if args.haver_dataset:
+        df, coverage, source = load_frequency_snapshot(args.haver_dataset, args.source_commit or '')
+        if args.coverage_report:
+            args.coverage_report.parent.mkdir(parents=True, exist_ok=True)
+            args.coverage_report.write_text(json.dumps({'source': source, 'rows': coverage}, indent=2))
+        unavailable = [r for r in coverage if r['status'] != 'exact']
+        if unavailable:
+            details = ', '.join(f"{r['series']} ({r['status']})" for r in unavailable)
+            raise ValueError(f'Source migration blocked: {len(unavailable)}/{len(coverage)} required series unavailable: {details}. No panel output written.')
+    else:
+        parquet_path = Path(args.haver_data) / 'data' / 'data.parquet'
+        if not parquet_path.exists():
+            raise FileNotFoundError(f'Parquet not found: {parquet_path}')
+        df = load_long_data(parquet_path)
+    print(f'Loaded {len(df):,} daily obs across {df["code"].nunique()} series')
     out_dir = Path(args.out_dir)
     out_dir.mkdir(parents=True, exist_ok=True)
 
-    print(f'Loading {parquet_path} ...')
-    df = load_long_data(parquet_path)
-    print(f'  {len(df):,} daily obs across {df["code"].nunique()} series')
-
     manifest = {'panels': [], 'vintage': None}
+    if source:
+        manifest['source'] = source
 
     for name, cfg in PANELS.items():
         panel = build_panel(df, name, cfg)
