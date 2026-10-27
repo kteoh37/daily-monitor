@@ -21,15 +21,33 @@ class PortfolioTests(unittest.TestCase):
   for sector in jsda.SECTORS:
    for maturity in jsda.MATURITIES:
     for action,value,word in [('P',2.,'purchases'),('S',1.,'sales')]:
-     code=f'GB{maturity}{sector}{action}@JAPAN';columns[code]=[value]*8
+     code=f'GB{maturity}{sector}{action}@JAPAN';columns[code]=[value if sector else value*6]*8
      metadata.append({'Series Code':code,'Series Name':f'{word} (100 Mil.Yen)','shortsource':'JSDA','frequency':'M'})
   data=pd.DataFrame(columns,index=months);meta=pd.DataFrame(metadata)
   def encode(frame):
    out=io.BytesIO();frame.to_parquet(out);return out.getvalue()
+  with self.assertRaisesRegex(ValueError,'Missing required series'):
+   jsda.calculate(encode(data.drop(columns=[data.columns[0]])),encode(meta),5)
+  badmeta=meta.copy();badmeta.loc[0,'frequency']='Q'
+  with self.assertRaisesRegex(ValueError,'Unexpected source/frequency/units'):
+   jsda.calculate(encode(data),encode(badmeta),5)
   frame=jsda.calculate(encode(data),encode(meta),5)
   totals=frame[(frame.month==months[-1])&frame.maturity.eq('All coupon-bearing JGBs')]
-  self.assertEqual(len(totals),6)
-  self.assertTrue((totals.rolling_net_trillion_yen==.0015).all())
+  self.assertEqual(len(totals),7)
+  shown=totals[totals.sector.isin(jsda.DISPLAY_SECTORS)]
+  self.assertEqual(len(shown),6)
+  self.assertTrue((shown.rolling_net_trillion_yen==.0015).all())
+  fields=['purchases_100million_yen','sales_100million_yen','net_100million_yen','rolling_net_trillion_yen']
+  for (month,maturity),group in frame.groupby(['month','maturity']):
+   overall=group[group.sector.eq(jsda.OVERALL_LABEL)].iloc[0]
+   displayed=group[group.sector.isin(jsda.DISPLAY_SECTORS)]
+   for field in fields:
+    expected=overall[field]
+    if pd.notna(expected):self.assertAlmostEqual(displayed[field].sum(min_count=6),expected)
+  missing=data.copy();missing.iloc[4,1]=float('nan')
+  incomplete=jsda.calculate(encode(missing),encode(meta),5)
+  residual=incomplete[incomplete.sector.eq(jsda.RESIDUAL_LABEL)&incomplete.month.eq(months[4])]
+  self.assertTrue(residual.rolling_net_trillion_yen.isna().any())
   # A missing calendar month must invalidate windows, never collapse to five observations.
   gap=jsda.calculate(encode(data.drop(months[4])),encode(meta),5)
   self.assertTrue(gap[gap.month==months[-1]].rolling_net_trillion_yen.isna().all())

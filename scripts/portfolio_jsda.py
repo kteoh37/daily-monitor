@@ -5,6 +5,9 @@ import logging
 import os
 from pathlib import Path
 SECTORS = {'CLB': 'City banks & long-term credit banks', 'RB': 'Regional banks', 'TB': 'Trust banks', 'LI': 'Life & non-life insurers', 'F': 'Foreign investors', '': 'Overall total (all investor categories)'}
+OVERALL_LABEL = SECTORS['']
+RESIDUAL_LABEL = 'All other categories (residual)'
+DISPLAY_SECTORS = [v for k,v in SECTORS.items() if k] + [RESIDUAL_LABEL]
 MATURITIES = {'S': 'Super-long-term', 'L': 'Long-term', 'M': 'Medium-term'}
 
 def calculate(raw_data, raw_metadata, window=5):
@@ -50,6 +53,18 @@ def calculate(raw_data, raw_metadata, window=5):
                 'sales_100million_yen': gross[sale].to_numpy(),
                 'net_100million_yen': (gross[purchase] - gross[sale]).to_numpy()}))
     monthly = pd.concat(parts, ignore_index=True)
+    # Derive each gross flow BEFORE netting/rolling. All five components are required.
+    fields = ['purchases_100million_yen', 'sales_100million_yen', 'net_100million_yen']
+    keys = ['month', 'maturity']
+    overall = monthly[monthly.sector.eq(OVERALL_LABEL)].set_index(keys)[fields]
+    named = monthly[~monthly.sector.eq(OVERALL_LABEL)].groupby(keys)[fields].sum(min_count=5)
+    residual = overall - named
+    if (residual[['purchases_100million_yen','sales_100million_yen']] < 0).any().any():
+        raise ValueError('Residual gross purchases/sales are negative; check source reconciliation')
+    residual['net_100million_yen'] = residual['purchases_100million_yen'] - residual['sales_100million_yen']
+    residual = residual.reset_index()
+    residual['sector'] = RESIDUAL_LABEL
+    monthly = pd.concat([monthly, residual], ignore_index=True)
     # Sum the three coupon-bearing maturity classes, requiring all three observations.
     total = monthly.groupby(['month', 'sector'])[['purchases_100million_yen', 'sales_100million_yen', 'net_100million_yen']].sum(min_count=3).reset_index()
     total['maturity'] = 'All coupon-bearing JGBs'
@@ -72,7 +87,7 @@ def outputs(frame, start, window, output):
     import matplotlib.pyplot as plt
     import matplotlib.dates as mdates
     start = pd.Timestamp(start)
-    visible = frame[frame.month >= start].copy()
+    visible = frame[(frame.month >= start) & frame.sector.isin(DISPLAY_SECTORS)].copy()
     if visible.empty:
         raise ValueError('Display start is after the latest JSDA month')
     # Refuse incomplete displayed windows rather than silently plotting shorter sums.
@@ -84,7 +99,7 @@ def outputs(frame, start, window, output):
     if (pd.Timestamp.now().normalize() - latest).days > 75:
         logging.warning('JSDA latest month is more than 75 days old; refresh the repository snapshot')
     fig, axes = plt.subplots(3, 2, figsize=(13, 10), sharex=True)
-    labels = list(SECTORS.values())
+    labels = DISPLAY_SECTORS
     series = [('All coupon-bearing JGBs', '#1f4e79', 2.5),
               ('Super-long-term', '#c00000', 1.3), ('Long-term', '#548235', 1.3),
               ('Medium-term', '#7030a0', 1.3)]
@@ -109,7 +124,7 @@ def outputs(frame, start, window, output):
     handles, legends = axes.flat[0].get_legend_handles_labels()
     fig.legend(handles, legends, loc='lower center', bbox_to_anchor=(.5, .055), ncol=4, frameon=False)
     fig.text(.07, .035, source, fontsize=8)
-    fig.text(.07, .017, 'Nominal/face value. Excludes Treasury bills and discount bonds. Overall total includes categories outside the five sectors shown.', fontsize=8)
+    fig.text(.07, .017, 'Face value; excludes Treasury bills/discount bonds. Residual = overall minus five displayed sectors; not formal JSDA Others or pure BoJ.', fontsize=8)
     fig.subplots_adjust(top=.89, bottom=.15, left=.07, right=.98, hspace=.32, wspace=.20)
     png = io.BytesIO()
     fig.savefig(png, format='png', dpi=180)

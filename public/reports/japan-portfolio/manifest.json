@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "mode": "live-source-check",
-  "attempted_at_utc": "2026-10-27T14:54:31.763663+00:00",
+  "attempted_at_utc": "2026-10-27T15:26:40.337975+00:00",
   "components": {
     "MOF": {
       "latest": "2026-10-17",
@@ -25,27 +25,28 @@
       "source_url": "https://www.mof.go.jp/policy/international_policy/reference/itn_transactions_in_securities/week.csv",
       "source_final_update": "Final Update  October  22 , 2026",
       "stale": false,
-      "last_success": "2026-10-27T14:54:31.763663+00:00",
+      "last_success": "2026-10-27T15:26:40.337975+00:00",
       "failed": false
     },
     "JSDA": {
       "latest": "2026-09-30",
-      "fingerprint": "849f9216de8975d30d320634e2a4f65de54b7b8e08f59e0f2b822366e45f5a83",
-      "status": "unchanged",
-      "new_periods": 0,
+      "fingerprint": "338a0eda71cb0006dec6918a056e2a3075563c81cc3ea1b0b8d81c3011d42efe",
+      "status": "definition updated / comparison baseline reset",
+      "new_periods": null,
       "prior_history_revised": false,
+      "definition": "five-sectors-plus-residual-v1",
       "cards": [
         {
           "file": "jsda/rolling_jgb_purchases.png",
           "title": "Who is buying coupon-bearing JGBs?",
-          "description": "Rolling five calendar month net purchases, yen trillion; displayed since 2022. Latest all coupon-bearing totals \u2014 City banks & long-term credit banks: +0.11; Foreign investors: +5.53; Life & non-life insurers: +2.42; Overall total (all investor categories): -2.83; Regional banks: +2.15; Trust banks: +7.77. Super-long-, long- and medium-term maturity groups are shown separately. Nominal/face value; excludes Treasury bills and discount bonds. The overall total includes categories outside the five displayed sectors and is not their sum."
+          "description": "Rolling five calendar month net purchases, yen trillion; displayed since 2022. Latest all coupon-bearing totals \u2014 All other categories (residual): -20.79; City banks & long-term credit banks: +0.11; Foreign investors: +5.53; Life & non-life insurers: +2.42; Regional banks: +2.15; Trust banks: +7.77. Super-long-, long- and medium-term maturity groups are shown separately. Nominal/face value; excludes Treasury bills and discount bonds. All other categories (residual) equals overall purchases minus the five displayed sectors\u2019 purchases, and likewise for sales, separately by maturity, before netting and rolling. It includes formal JSDA Others (government auctions, BoJ operations and other entities), bond dealers, and other financial/nonfinancial categories. It is not formal JSDA Others, pure BoJ activity or private investor demand."
         }
       ],
       "source": "JSDA via Haver Analytics",
       "source_commit": "42b22b98e51902a61cbb7ae62354f2d2f31cd6ed",
       "snapshot_utc": "2026-10-27T14:45:32+00:00",
       "stale": false,
-      "last_success": "2026-10-27T14:54:31.763663+00:00",
+      "last_success": "2026-10-27T15:26:40.337975+00:00",
       "failed": false
     }
   },

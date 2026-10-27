@@ -75,17 +75,22 @@ def jsda_component(stage, previous, folder, commit):
     # Fingerprints use transaction levels, not rolling sums; revisions remain detectable.
     periods = {str(month.date()): group.sort_values(['sector','maturity'])[['sector','maturity','purchases_100million_yen','sales_100million_yen']].to_json(orient='values',double_precision=10)
                for month,group in frame.groupby('month')}
-    state = compare_periods(periods, previous)
+    definition = 'five-sectors-plus-residual-v1'
+    changed_definition = previous.get('definition') != definition
+    state = compare_periods(periods, {} if changed_definition else previous)
+    if changed_definition:
+        state['status'] = 'definition updated / comparison baseline reset'
+    state['definition'] = definition
     (stage/'jsda').mkdir(exist_ok=True)
     (stage/'jsda/rolling_jgb_purchases.png').write_bytes(png)
     latest = visible.month.max()
-    totals=visible[(visible.month==latest)&visible.maturity.eq('All coupon-bearing JGBs')]
+    totals=visible[(visible.month==latest)&visible.maturity.eq('All coupon-bearing JGBs')&visible.sector.isin(jsda.DISPLAY_SECTORS)]
     if len(totals)!=6 or totals.rolling_net_trillion_yen.isna().any():
         raise ValueError('Incomplete latest JSDA sector totals')
     values='; '.join(f'{r.sector}: {r.rolling_net_trillion_yen:+.2f}' for r in totals.itertuples())
     card=dict(file='jsda/rolling_jgb_purchases.png',title='Who is buying coupon-bearing JGBs?',description=(
         'Rolling five calendar month net purchases, yen trillion; displayed since 2022. Latest all coupon-bearing totals — '+values+
-        '. Super-long-, long- and medium-term maturity groups are shown separately. Nominal/face value; excludes Treasury bills and discount bonds. The overall total includes categories outside the five displayed sectors and is not their sum.'))
+        '. Super-long-, long- and medium-term maturity groups are shown separately. Nominal/face value; excludes Treasury bills and discount bonds. All other categories (residual) equals overall purchases minus the five displayed sectors’ purchases, and likewise for sales, separately by maturity, before netting and rolling. It includes formal JSDA Others (government auctions, BoJ operations and other entities), bond dealers, and other financial/nonfinancial categories. It is not formal JSDA Others, pure BoJ activity or private investor demand.'))
     snapshot=json.loads((folder/'snapshot_manifest.json').read_text())
     state.update(cards=[card],source='JSDA via Haver Analytics',source_commit=commit,snapshot_utc=snapshot['snapshot_utc'],
                  stale=(date.today()-latest.date()).days>75)
