@@ -12,6 +12,27 @@ class PortfolioTests(unittest.TestCase):
   b=report.compare_periods({'2026-01-01':[1]},a);self.assertEqual(b['status'],'unchanged')
   c=report.compare_periods({'2026-01-01':[1],'2026-01-08':[2]},a);self.assertEqual(c['status'],'new');self.assertEqual(c['new_periods'],1)
   d=report.compare_periods({'2026-01-01':[3],'2026-01-08':[2]},a);self.assertEqual(d['status'],'revised');self.assertTrue(d['prior_history_revised'])
+ def test_calendar_window_and_separate_overall_total(self):
+  import io
+  import pandas as pd
+  import portfolio_jsda as jsda
+  months=pd.date_range('2021-01-31',periods=8,freq=pd.offsets.MonthEnd())
+  columns={};metadata=[]
+  for sector in jsda.SECTORS:
+   for maturity in jsda.MATURITIES:
+    for action,value,word in [('P',2.,'purchases'),('S',1.,'sales')]:
+     code=f'GB{maturity}{sector}{action}@JAPAN';columns[code]=[value]*8
+     metadata.append({'Series Code':code,'Series Name':f'{word} (100 Mil.Yen)','shortsource':'JSDA','frequency':'M'})
+  data=pd.DataFrame(columns,index=months);meta=pd.DataFrame(metadata)
+  def encode(frame):
+   out=io.BytesIO();frame.to_parquet(out);return out.getvalue()
+  frame=jsda.calculate(encode(data),encode(meta),5)
+  totals=frame[(frame.month==months[-1])&frame.maturity.eq('All coupon-bearing JGBs')]
+  self.assertEqual(len(totals),6)
+  self.assertTrue((totals.rolling_net_trillion_yen==.0015).all())
+  # A missing calendar month must invalidate windows, never collapse to five observations.
+  gap=jsda.calculate(encode(data.drop(months[4])),encode(meta),5)
+  self.assertTrue(gap[gap.month==months[-1]].rolling_net_trillion_yen.isna().all())
  def test_regression_rejected(self):
   with self.assertRaises(ValueError):report.compare_periods({'2025-01-01':[1]},{'latest':'2026-01-01'})
  def test_partial_failure_retains_complete_component(self):

@@ -4,11 +4,12 @@ on:
   push:
     branches: [main]
   schedule:
-    # Twice daily, at 13:00 and 22:00 UTC. The upstream haver-data auto-pull
-    # runs at ~07:00 server-local (~12:00 UTC) but on some days only pushes
-    # later in the afternoon — the 22:00 UTC firing catches those.
+    # Existing dashboard cadence stays at 13:00 and 22:00 UTC.
     - cron: '0 13 * * *'
     - cron: '0 22 * * *'
+    # Thursday 10:00 America/New_York; plan selects exactly one across DST.
+    - cron: '0 14 * * 4'
+    - cron: '0 15 * * 4'
   workflow_dispatch:
     inputs:
       refresh_portfolio:
@@ -26,7 +27,26 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  plan:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    outputs:
+      run: ${{ steps.plan.outputs.run }}
+      refresh: ${{ steps.plan.outputs.refresh }}
+    steps:
+      - uses: actions/checkout@v4
+      - run: python3 scripts/test_portfolio_schedule.py
+      - id: plan
+        run: python3 scripts/portfolio_schedule.py
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          CRON: ${{ github.event.schedule }}
+          REQUESTED: ${{ inputs.refresh_portfolio }}
+
   build:
+    needs: plan
+    if: ${{ needs.plan.outputs.run == 'true' }}
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -65,7 +85,7 @@ jobs:
 
       - name: Refresh portfolio from live sources
         id: portfolio
-        if: ${{ inputs.refresh_portfolio == true }}
+        if: ${{ needs.plan.outputs.refresh == 'true' }}
         shell: bash
         run: |
           SOURCE_REVISION=$(git -C haver-dataset rev-parse HEAD)

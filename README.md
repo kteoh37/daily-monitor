@@ -60,6 +60,8 @@ python scripts/build_data.py --haver-dataset ../haver-dataset --source-commit "$
 
 The existing workflow rebuilds at 13:00 and 22:00 UTC and on main pushes. All dashboard indicators use the exact new-repository codes, preserving units, transformations and charts. The curated policy report refreshes price series in the same build; its researched event annotations remain separately dated.
 
+Portfolio charts refresh Thursdays at 10:00 America/New_York with a daylight-saving-aware UTC gate (GitHub cron may run late). The live cloud integration was verified successfully in run 40525581304 before enabling this schedule.
+
 Manual `workflow_dispatch` with `refresh_portfolio=true` fetches official live MOF CSV and calculates JSDA rolling five-calendar-month purchases from the same commit-pinned Haver checkout. It commits only the approved five-file export and deploys it. On component failure the last complete chart/prose remains with a visible warning; the site still deploys the warning and a follow-up workflow job marks the run failed. Haver observations remain as current as the upstream snapshot; a successful fetch does not imply a new vendor observation.
 
 The existing named secret `HAVER_DATA_TOKEN` already provides workflow access to `kteoh37/haver-dataset` and is reused without inspecting, copying or changing its value or grants. No client-side GitHub authentication is introduced. No private tracker access is needed: reviewed calculation code runs inside daily-monitor. The private tracker schedule and ChatGPT task remain unchanged.
