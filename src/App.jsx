@@ -72,6 +72,13 @@ export default function App() {
                 <div>Japan policy</div>
                 <div className="text-xs mt-0.5 font-normal hidden sm:block text-slate-400 dark:text-slate-600">JGB yields · Yen · Events</div>
               </a>
+              <a
+                href={`${import.meta.env.BASE_URL}reports/japan-portfolio/index.html`}
+                className="tab-btn tab-btn-inactive text-center sm:text-left px-2 py-2 text-xs sm:px-5 sm:py-2.5 sm:text-sm leading-tight"
+              >
+                <div>Japan flows</div>
+                <div className="text-xs mt-0.5 font-normal hidden sm:block text-slate-400 dark:text-slate-600">MOF · JGB purchases</div>
+              </a>
             </nav>
             <button
               onClick={toggle}
