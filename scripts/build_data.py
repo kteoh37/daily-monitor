@@ -258,6 +258,8 @@ def load_frequency_snapshot(folder: Path, source_commit: str):
                     raise ValueError(f'Metadata database mismatch for {code}')
                 if frequency != 'D':
                     row['status'] = 'non_daily'
+                elif cfg['change_type'] == 'pp' and not ('%' in str(meta['descriptor']) or 'percent' in str(meta['descriptor']).lower()):
+                    row['status'] = 'unexpected_units'
                 else:
                     values = pd.to_numeric(wide[column_map[key]], errors='raise').dropna()
                     if not np.isfinite(values.to_numpy()).all():

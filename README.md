@@ -34,11 +34,9 @@ Vite + React 18 + Tailwind + Recharts. Static JSON snapshots in `public/data/`. 
 
 ## Data flow
 
-```
-haver-data/data.parquet  ->  scripts/build_data.py  ->  public/data/*.json  ->  React UI
-```
+One commit-pinned `kteoh37/haver-dataset` checkout supplies wide daily data and native-frequency metadata to `scripts/build_data.py`, plus the Japan policy report and monthly JSDA portfolio chart. The strict dashboard loader requires all 122 exact daily codes and finite observations; no series substitutions or raw snapshot files are published. The sanitized dashboard manifest records source SHA and snapshot vintage.
 
-The build script reads the local `haver-data` clone, applies standard transforms (level, daily change, rolling z-score), and writes one JSON per panel.
+Portfolio reports publish only three PNGs, HTML descriptions and a compact manifest of dates/status/fingerprints. Raw Haver data, metadata, CSVs and tracker state histories stay in temporary build inputs. A full-history prefix digest detects revisions without storing transaction history in public state. See `docs/portfolio-integration.md`.
 
 ## Country scope
 
@@ -51,28 +49,17 @@ npm install
 npm run dev
 ```
 
-Refresh data:
+Refresh data from a clean pinned snapshot:
 
 ```bash
-python scripts/build_data.py --haver-data ../haver-data
+SOURCE_REVISION=$(git -C ../haver-dataset rev-parse HEAD)
+python scripts/build_data.py --haver-dataset ../haver-dataset --source-commit "$SOURCE_REVISION"
 ```
 
-## Deployment
+## Deployment and automatic updates
 
-Pushes to `main` automatically build and deploy via [`.github/workflows/deploy.yml`](.github/workflows/deploy.yml). The same workflow runs on a `schedule` cron (13:00 and 22:00 UTC daily), so the live site refreshes every day after the upstream haver-data parquet updates.
+The existing workflow rebuilds at 13:00 and 22:00 UTC and on main pushes. All dashboard indicators use the exact new-repository codes, preserving units, transformations and charts. The curated policy report refreshes price series in the same build; its researched event annotations remain separately dated.
 
-### Authenticating to the private haver-data repo
+Manual `workflow_dispatch` with `refresh_portfolio=true` fetches official live MOF CSV and calculates JSDA rolling five-calendar-month purchases from the same commit-pinned Haver checkout. It commits only the approved five-file export and deploys it. On component failure the last complete chart/prose remains with a visible warning; the site still deploys the warning and a follow-up workflow job marks the run failed. Haver observations remain as current as the upstream snapshot; a successful fetch does not imply a new vendor observation.
 
-The `jasonzhixinglu/haver-data` repo is private. CI checks it out using a Personal Access Token stored as the **`HAVER_DATA_TOKEN`** secret on this repo. To rotate it:
-
-1. On a GitHub account with read access to `jasonzhixinglu/haver-data`, create a **fine-grained PAT** (Settings → Developer settings → Personal access tokens → Fine-grained tokens → Generate new token):
-   - Resource owner: `jasonzhixinglu`
-   - Repository access: only `jasonzhixinglu/haver-data`
-   - Permissions → Repository → **Contents: Read**
-   - Expiration: as long as you're comfortable with (90 days / 1 year)
-2. On `kteoh37/daily-monitor` → Settings → Secrets and variables → Actions → New repository secret:
-   - Name: `HAVER_DATA_TOKEN`
-   - Value: the PAT from step 1
-3. Re-run any failed workflow run.
-
-If the token expires, scheduled and push-triggered deploys will fail at the haver-data checkout step.
+The existing named secret `HAVER_DATA_TOKEN` already provides workflow access to `kteoh37/haver-dataset` and is reused without inspecting, copying or changing its value or grants. No client-side GitHub authentication is introduced. No private tracker access is needed: reviewed calculation code runs inside daily-monitor. The private tracker schedule and ChatGPT task remain unchanged.

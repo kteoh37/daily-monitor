@@ -1,6 +1,6 @@
 # Haver source migration — local draft
 
-Not deployed. Live dashboard retains its existing source until exact coverage is resolved.
+Migration validated against new commit `42b22b98e51902a61cbb7ae62354f2d2f31cd6ed` (snapshot 2026-10-27 14:45:32 UTC): all 122 exact native-daily series have nonempty data, including all 11 previously missing codes. Existing definitions/transforms are preserved. The workflow now uses one pinned checkout for dashboard, policy report and portfolio calculations. The historical gap analysis below records the earlier snapshot, not a current blocker.
 
 Validated snapshot: `kteoh37/haver-dataset@8f6e2d9fcdcccc296a5bb46dff00fd4185677ede`; snapshot vintage `2026-10-26T21:59:54+00:00`. Downloaded through existing authenticated gh and verified blob sizes/hashes, Parquet signatures, schemas and date indexes. No credential changes.
 
@@ -17,7 +17,7 @@ Validated snapshot: `kteoh37/haver-dataset@8f6e2d9fcdcccc296a5bb46dff00fd4185677
 
 111/122 exact series; all 111 retain native D frequency. No ambiguous matches or frequency substitutions. The daily storage bucket also contains native weekly series; these are excluded by metadata, not storage filename.
 
-## Missing exact series
+## Historical gaps — all resolved in 42b22b98
 
 | Panel | Dashboard definition | Required code |
 |---|---|---|
@@ -45,4 +45,4 @@ Before activation, add these exact series to the upstream snapshot (separately a
 
 Current workflow already checks out kteoh37/haver-dataset for the policy report using the existing named secret HAVER_DATA_TOKEN; that checkout succeeded in deployment 40521553361. This is empirical access evidence, not a token-scope claim. No new credential should be requested or existing token read/reconfigured without parent review. Minimal requirement is server-side Contents:Read to kteoh37/haver-dataset for the existing GitHub Actions checkout; no browser token or client-side private GitHub fetch.
 
-Live workflow and source labels intentionally unchanged while coverage remains blocked.
+Source attribution and deployment invocation have now been updated after 122/122 validation. No substitutions, removed rows or new credentials were needed.

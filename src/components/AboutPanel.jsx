@@ -17,8 +17,8 @@ export default function AboutPanel() {
         <div className="label">Data source</div>
         <p className="text-sm text-slate-700 dark:text-slate-300 leading-relaxed">
           All series are pulled from Haver Analytics via the
-          {' '}<a href="https://github.com/jasonzhixinglu/haver-data" className="text-indigo-600 dark:text-indigo-400 hover:underline">haver-data</a>{' '}
-          pipeline, refreshed daily. The build script reads the parquet snapshot, applies
+          {' '}<a href="https://github.com/kteoh37/haver-dataset" className="text-indigo-600 dark:text-indigo-400 hover:underline">haver-dataset</a>{' '}
+          snapshot, rebuilt at 13:00 and 22:00 UTC. The build script reads the parquet snapshot, applies
           standard transforms (level, daily change, rolling z-score), and emits JSON files
           consumed by this dashboard.
         </p>
