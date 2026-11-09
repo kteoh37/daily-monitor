@@ -118,6 +118,9 @@ def main():
     parser.add_argument('--source-commit', default='unknown')
     args = parser.parse_args()
     text, latest = refresh(args.report.read_text(), load_series(args.haver_data), args.source_commit)
+    # Only reviewed records on this checked-out branch enter the build.
+    from policy_events import REGISTRY, apply_registry
+    text = apply_registry(text, json.loads(REGISTRY.read_text()))
     temporary = args.report.with_suffix('.html.tmp')
     temporary.write_text(text)
     temporary.replace(args.report)

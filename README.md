@@ -65,3 +65,14 @@ Portfolio charts refresh Fridays at 10:00 America/New_York with a daylight-savin
 Manual `workflow_dispatch` with `refresh_portfolio=true` fetches official live MOF CSV and calculates JSDA rolling five-calendar-month purchases from the same commit-pinned Haver checkout. It commits only the approved five-file export and deploys it. On component failure the last complete chart/prose remains with a visible warning; the site still deploys the warning and a follow-up workflow job marks the run failed. Haver observations remain as current as the upstream snapshot; a successful fetch does not imply a new vendor observation.
 
 The existing named secret `HAVER_DATA_TOKEN` already provides workflow access to `kteoh37/haver-dataset` and is reused without inspecting, copying or changing its value or grants. No client-side GitHub authentication is introduced. No private tracker access is needed: reviewed calculation code runs inside daily-monitor. The private tracker schedule and ChatGPT task remain unchanged.
+
+## Reviewed Japan policy updates
+
+Policy annotations can now be proposed as public-only records in
+`data/policy-events.json`. Every update goes through a **draft PR for review**;
+there is no auto-merge or automatic event publication. After an approved merge,
+the existing deployment overlays verified updates on the retained baseline and
+refreshes market prices as before. See [the review workflow](docs/policy-event-review.md)
+for official-source checks, event/disclosure dates, duplicate handling, private-data
+boundaries and the daily briefing handoff. Setup is not live until its draft PR is
+reviewed and merged.

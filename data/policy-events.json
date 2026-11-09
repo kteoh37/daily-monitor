@@ -1,0 +1,97 @@
+{
+  "schema_version": 1,
+  "events": [
+    {
+      "id": "MOF-FXI-2026-07-30",
+      "issuer": "MOF",
+      "category": "FX intervention",
+      "stage": "operation",
+      "event_date": "2026-07-30",
+      "date_basis": "MOF official operation date; no intraday time or timezone conversion inferred",
+      "disclosure_date": "2026-11-09",
+      "verified_on": "2026-11-09",
+      "title": "Japan yen-buying intervention: JPY7,975.6bn",
+      "summary": "MOF reports JPY7,975.6 billion of US-dollar sales and Japanese-yen purchases on July 30, 2026. The November 9 quarterly release allocates JPY15,399.3 billion across July 30, July 31 and August 3.",
+      "classification": "FX intervention — yen support",
+      "direction": "fx",
+      "caveat": "This is a retrospective official disclosure, not a November 9 intervention. No intraday execution time, causal market effect or US intervention amount is inferred. Holiday observations may be carry-forwards.",
+      "sources": [
+        {
+          "url": "https://www.mof.go.jp/english/policy/international_policy/reference/feio/quarter/2026_3Qe.html",
+          "title": "MOF: Foreign Exchange Intervention Operations, July–September 2026",
+          "published_date": "2026-11-09",
+          "quotes": [
+            "November 9, 2026",
+            "July 30, 2026 ¥7,975.6 billion the US dollar (sold) the Japanese yen (bought)",
+            "¥ 15,399.3 billion"
+          ]
+        }
+      ],
+      "legacy_id": "FX26-4R"
+    },
+    {
+      "id": "MOF-FXI-2026-07-31",
+      "issuer": "MOF",
+      "category": "FX intervention",
+      "stage": "operation",
+      "event_date": "2026-07-31",
+      "date_basis": "MOF official operation date; no intraday time or timezone conversion inferred",
+      "disclosure_date": "2026-11-09",
+      "verified_on": "2026-11-09",
+      "title": "Japan yen-buying intervention: JPY5,552.3bn",
+      "summary": "MOF reports JPY5,552.3 billion of US-dollar sales and Japanese-yen purchases on July 31, 2026. The November 9 quarterly release allocates JPY15,399.3 billion across July 30, July 31 and August 3. A separate August 3 ministerial statement confirms coordination with the US Treasury on July 31, explicitly in US Eastern Time.",
+      "classification": "FX intervention — yen support",
+      "direction": "fx",
+      "caveat": "This is a retrospective official disclosure, not a November 9 intervention. No intraday execution time, causal market effect or US intervention amount is inferred. Holiday observations may be carry-forwards.",
+      "sources": [
+        {
+          "url": "https://www.mof.go.jp/english/policy/international_policy/reference/feio/quarter/2026_3Qe.html",
+          "title": "MOF: Foreign Exchange Intervention Operations, July–September 2026",
+          "published_date": "2026-11-09",
+          "quotes": [
+            "November 9, 2026",
+            "July 31, 2026 ¥5,552.3 billion the US dollar (sold) the Japanese yen (bought)",
+            "¥ 15,399.3 billion"
+          ]
+        },
+        {
+          "url": "https://www.mof.go.jp/english/public_relations/statement/others/20260803073000.html",
+          "title": "MOF minister statement on coordinated intervention",
+          "published_date": "2026-08-03",
+          "quotes": [
+            "August 3, 2026",
+            "On Friday 31st, July (U.S. Eastern Time), Japan's Ministry of Finance purchased the Japanese yen in coordination with the U.S. Department of the Treasury."
+          ]
+        }
+      ],
+      "legacy_id": "FX26-5"
+    },
+    {
+      "id": "MOF-FXI-2026-08-03",
+      "issuer": "MOF",
+      "category": "FX intervention",
+      "stage": "operation",
+      "event_date": "2026-08-03",
+      "date_basis": "MOF official operation date; no intraday time or timezone conversion inferred",
+      "disclosure_date": "2026-11-09",
+      "verified_on": "2026-11-09",
+      "title": "Japan yen-buying intervention: JPY1,871.4bn",
+      "summary": "MOF reports JPY1,871.4 billion of US-dollar sales and Japanese-yen purchases on August 3, 2026. The November 9 quarterly release allocates JPY15,399.3 billion across July 30, July 31 and August 3.",
+      "classification": "FX intervention — yen support",
+      "direction": "fx",
+      "caveat": "This is a retrospective official disclosure, not a November 9 intervention. No intraday execution time, causal market effect or US intervention amount is inferred. Holiday observations may be carry-forwards.",
+      "sources": [
+        {
+          "url": "https://www.mof.go.jp/english/policy/international_policy/reference/feio/quarter/2026_3Qe.html",
+          "title": "MOF: Foreign Exchange Intervention Operations, July–September 2026",
+          "published_date": "2026-11-09",
+          "quotes": [
+            "November 9, 2026",
+            "August 3, 2026 ¥1,871.4 billion the US dollar (sold) the Japanese yen (bought)",
+            "¥ 15,399.3 billion"
+          ]
+        }
+      ]
+    }
+  ]
+}

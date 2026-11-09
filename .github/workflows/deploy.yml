@@ -109,6 +109,7 @@ jobs:
         shell: bash
         run: |
           python scripts/test_refresh_policy_report.py
+          python scripts/test_policy_events.py
           POLICY_SOURCE_REVISION=$(git -C haver-dataset rev-parse HEAD)
           python scripts/refresh_policy_report.py --haver-data haver-dataset --source-commit "$POLICY_SOURCE_REVISION"
 
