@@ -48,6 +48,15 @@ class ScheduleTests(unittest.TestCase):
         self.assertEqual(plan('push', requested=True), (True, False))
         self.assertEqual(plan('push'), (True, False))
 
+    def test_report_schedule_labels_match_friday_refresh(self):
+        root = Path(__file__).resolve().parents[1]
+        for path in ['scripts/portfolio-report-template.html',
+                     'public/reports/japan-portfolio/index.html']:
+            with self.subTest(path=path):
+                text = (root / path).read_text()
+                self.assertIn('Portfolio charts refresh Fridays at 10:00 America/New_York', text)
+                self.assertNotIn('Portfolio charts refresh Thursdays', text)
+
     def test_workflow_crons_match_gate_and_keep_daily_schedule(self):
         workflow = (Path(__file__).resolve().parents[1] /
                     '.github/workflows/deploy.yml').read_text()
