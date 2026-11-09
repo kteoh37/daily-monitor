@@ -7,9 +7,9 @@ on:
     # Existing dashboard cadence stays at 13:00 and 22:00 UTC.
     - cron: '0 13 * * *'
     - cron: '0 22 * * *'
-    # Thursday 10:00 America/New_York; plan selects exactly one across DST.
-    - cron: '0 14 * * 4'
-    - cron: '0 15 * * 4'
+    # Friday 10:00 America/New_York; plan selects exactly one across DST.
+    - cron: '0 14 * * 5'
+    - cron: '0 15 * * 5'
   workflow_dispatch:
     inputs:
       refresh_portfolio:

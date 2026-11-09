@@ -1,9 +1,9 @@
-"""DST-safe Thursday 10:00 New York gate for the two UTC cron candidates."""
+"""DST-safe Friday 10:00 New York gate for the two UTC cron candidates."""
 from datetime import datetime, timezone
 import os
 from zoneinfo import ZoneInfo
 
-WEEKLY_CRONS={'0 14 * * 4','0 15 * * 4'}
+WEEKLY_CRONS={'0 14 * * 5','0 15 * * 5'}
 
 def plan(event, cron='', requested=False, now=None):
     now=now or datetime.now(timezone.utc)
@@ -11,7 +11,7 @@ def plan(event, cron='', requested=False, now=None):
         # Interpret intended cron hour, not actual delayed runner start hour.
         intended=now.astimezone(timezone.utc).replace(hour=int(cron.split()[1]),minute=0,second=0,microsecond=0)
         local=intended.astimezone(ZoneInfo('America/New_York'))
-        selected=local.weekday()==3 and local.hour==10
+        selected=local.weekday()==4 and local.hour==10
         return selected,selected
     return True,bool(requested and event=='workflow_dispatch')
 
