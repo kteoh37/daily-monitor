@@ -32,6 +32,8 @@ jobs:
       - run: pip install -r scripts/requirements.txt
       - name: Test policy safety and existing report pipelines
         run: python -m unittest discover -s scripts -p 'test_*.py'
+      - name: Install PDF evidence reader
+        run: sudo apt-get update && sudo apt-get install -y poppler-utils
       - name: Verify exact evidence on official sources
         run: |
           command -v pdftotext
