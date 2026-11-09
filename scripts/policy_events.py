@@ -147,11 +147,24 @@ def upsert(registry, candidates, today=None):
     for event in candidates:
         if event['id'] in by_id and identity(by_id[event['id']]) != identity(event):
             raise ValueError('Existing event identity cannot change silently')
+        if event['id'] in by_id and event['verified_on'] < by_id[event['id']]['verified_on']:
+            raise ValueError('Stale verification cannot overwrite a newer reviewed record')
         if event['id'] in by_id and by_id[event['id']].get('legacy_id') != event.get('legacy_id'):
             raise ValueError('Existing legacy mapping cannot change silently')
         by_id[event['id']] = copy.deepcopy(event)
     result = {'schema_version': 1, 'events': sorted(by_id.values(), key=lambda e: (e['event_date'], e['id']))}
     return validate(result, today)
+
+
+def validate_transition(base, proposed):
+    """Check a direct JSON edit too: upsert must not be bypassed by deleting history."""
+    validate(base); validate(proposed)
+    base_ids = {event['id'] for event in base['events']}
+    proposed_ids = {event['id'] for event in proposed['events']}
+    if not base_ids <= proposed_ids:
+        raise ValueError('Deleting reviewed event history is forbidden')
+    upsert(base, proposed['events'])  # Enforces immutable identity/mapping and non-stale edits.
+    return proposed
 
 
 class VisibleText(HTMLParser):
@@ -323,6 +336,7 @@ def apply_registry(document, registry):
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--registry', type=Path, default=REGISTRY)
+    parser.add_argument('--base-registry', type=Path, help='Previous reviewed registry for no-delete/identity checks')
     parser.add_argument('--verify-sources', action='store_true')
     parser.add_argument('--candidates', type=Path, help='Public-only candidate registry to upsert into a distinct output')
     parser.add_argument('--report', type=Path)
@@ -336,6 +350,8 @@ def main():
             parser.error('Upsert requires a distinct --output and no --report')
         candidates = validate(json.loads(args.candidates.read_text()))
         registry = upsert(registry, candidates['events'])
+    if args.base_registry:
+        validate_transition(json.loads(args.base_registry.read_text()), registry)
     if args.verify_sources:
         print(f'Official source/evidence checks passed: {verify_sources(registry)} distinct pages')
     if args.candidates:

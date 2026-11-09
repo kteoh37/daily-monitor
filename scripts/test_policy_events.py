@@ -141,6 +141,18 @@ class PolicyEventTests(unittest.TestCase):
         self.assertIn('verified updates checked through 2026-11-09', rendered)
         self.assertIn('JGB 2027-01-05; yen 2027-01-05', rendered)
 
+    def test_transition_rejects_deleted_history_and_stale_verification(self):
+        changed = copy.deepcopy(self.registry); changed['events'].pop()
+        with self.assertRaisesRegex(ValueError, 'Deleting reviewed'):
+            m.validate_transition(self.registry, changed)
+        self.assertEqual(m.validate_transition(self.registry, self.registry), self.registry)
+        base = copy.deepcopy(self.registry)
+        candidate = copy.deepcopy(base['events'][0])
+        candidate.update(verified_on='2026-11-08', disclosure_date='2026-11-08')
+        candidate['sources'][0]['published_date'] = '2026-11-08'
+        with self.assertRaisesRegex(ValueError, 'Stale verification'):
+            m.upsert(base, [candidate])
+
     def test_legacy_mapping_and_effective_marker_ids_are_stable(self):
         changed = copy.deepcopy(self.registry['events'][0]); changed.pop('legacy_id')
         with self.assertRaisesRegex(ValueError, 'legacy mapping'):
