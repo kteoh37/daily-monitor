@@ -149,34 +149,6 @@
           ]
         }
       ]
-    },
-    {
-      "id": "BLS-CPI-2026-11-10",
-      "issuer": "BLS",
-      "category": "U.S. CPI",
-      "stage": "disclosure",
-      "event_date": "2026-11-10",
-      "plot_date": "2026-11-11",
-      "date_basis": "BLS released October-reference-month CPI on November 10 at 08:30 EST (22:30 JST), after Japan's cash market closed",
-      "disclosure_date": "2026-11-10",
-      "verified_on": "2026-11-12",
-      "title": "U.S. October CPI: headline +0.4%, core +0.3% m/m",
-      "summary": "BLS published October 2026 CPI on November 10: all-items CPI rose 0.4% month over month, seasonally adjusted, and CPI excluding food and energy rose 0.3%. The data are October price changes released in November.",
-      "classification": "U.S. inflation data — not a rate decision",
-      "direction": "neutral",
-      "caveat": "Released November 10 at 08:30 EST, after the Tokyo close; marker placed on the November 11 Tokyo session. No CPI surprise or causal JGB/yen response inferred. BLS cannot publish most October 2026 12-month rates owing to unavailable October 2025 indexes.",
-      "sources": [
-        {
-          "url": "https://www.bls.gov/news.release/archives/cpi_11102026.htm",
-          "title": "BLS: Consumer Price Index, October 2026",
-          "published_date": "2026-11-10",
-          "quotes": [
-            "8:30 a.m. (ET) Tuesday, November 10, 2026",
-            "CONSUMER PRICE INDEX - OCTOBER 2026",
-            "The index for all items less food and energy rose 0.3 percent in October, as it did in September and August."
-          ]
-        }
-      ]
     }
   ]
 }
