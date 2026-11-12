@@ -120,6 +120,34 @@
           ]
         }
       ]
+    },
+    {
+      "id": "MOF-FISCAL-2026-11-06-CYBER",
+      "issuer": "MOF",
+      "category": "Fiscal",
+      "stage": "decision",
+      "event_date": "2026-11-06",
+      "date_basis": "Cabinet approval on November 6, 2026, Japan local calendar date; no intraday time assumed",
+      "disclosure_date": "2026-11-06",
+      "verified_on": "2026-11-12",
+      "title": "Cabinet approves JPY10bn reserve-fund use for cybersecurity",
+      "summary": "On November 6, the Cabinet approved JPY10 billion of reserve-fund use for urgent cybersecurity measures: JPY2.0bn for AI-assisted vulnerability checks of important government systems, JPY4.1bn for police cybersecurity equipment, and JPY3.8bn for Digital Agency system security.",
+      "classification": "Allocation of existing budget reserves for cybersecurity",
+      "direction": "neutral",
+      "caveat": "Decision to use existing reserve funds, not proof of completed disbursement, a new supplementary budget, or additional JGB issuance. Stated suballocations total JPY9.9bn, short of the overall JPY10bn; no missing use is inferred. No market reaction or exact execution timing inferred.",
+      "sources": [
+        {
+          "url": "https://www.mof.go.jp/public_relations/conference/my20261106.html",
+          "title": "MOF: Finance Minister Katayama post-Cabinet press conference, November 6, 2026",
+          "published_date": "2026-11-06",
+          "quotes": [
+            "総額100億円の予備費使用を決定いたしました。",
+            "ＡＩを活用した脆弱性の点検に必要な経費として20億円",
+            "必要な経費として41億円",
+            "必要な経費として38億円"
+          ]
+        }
+      ]
     }
   ]
 }
