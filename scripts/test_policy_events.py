@@ -183,5 +183,55 @@ class PolicyEventTests(unittest.TestCase):
             m.apply_registry(self.document, bad)
 
 
+    def test_us_global_events_have_distinct_sources_and_tokyo_session_dates(self):
+        fed = copy.deepcopy(self.registry['events'][0])
+        fed.update(id='FED-FOMC-2026-10-28', issuer='FED', category='Fed',
+                   stage='decision', event_date='2026-10-28',
+                   disclosure_date='2026-10-28', verified_on='2026-11-12',
+                   plot_date='2026-10-29', direction='neutral')
+        fed.pop('legacy_id', None)
+        fed['sources'] = [{'url': 'https://www.federalreserve.gov/newsevents/pressreleases/monetary20261028a.htm',
+                           'title': 'Fed decision', 'published_date': '2026-10-28',
+                           'quotes': ['October 28, 2026']}]
+        cpi = copy.deepcopy(fed)
+        cpi.update(id='BLS-CPI-2026-11-10', issuer='BLS', category='U.S. CPI',
+                   stage='disclosure', event_date='2026-11-10', plot_date='2026-11-11',
+                   disclosure_date='2026-11-10')
+        cpi['sources'] = [{'url': 'https://www.bls.gov/news.release/archives/cpi_11102026.htm',
+                           'title': 'BLS CPI', 'published_date': '2026-11-10',
+                           'quotes': ['CONSUMER PRICE INDEX - OCTOBER 2026']}]
+        registry = m.upsert({'schema_version': 1, 'events': []}, [fed, cpi],
+                            today=date(2026, 11, 12))
+        self.assertEqual(len(registry['events']), 2)
+        self.assertEqual(m.upsert(registry, [], today=date(2026, 11, 12)), registry)
+        for bad in [dict(fed, plot_date='2026-10-28'),
+                    dict(fed, plot_date='2026-11-06'),
+                    dict(cpi, issuer='MOF')]:
+            with self.assertRaises(ValueError):
+                m.validate({'schema_version': 1, 'events': [bad]}, today=date(2026, 11, 12))
+        with self.assertRaises(ValueError):
+            m.official_url('https://www.bls.gov.evil.test/notice', 'BLS')
+        with self.assertRaises(ValueError):
+            m.official_url('https://www.federalreserve.gov/private?token=abc', 'FED')
+        import pandas as pd
+        dates = pd.bdate_range('2022-01-03', '2026-11-12')
+        series = {'jgb': pd.Series(2.5, index=dates),
+                  'yen': pd.Series(156.0, index=dates)}
+        refreshed, _ = r.refresh(self.document, series, 'test-revision')
+        rendered = m.apply_registry(refreshed, registry)
+        payload = json.loads(r.PAYLOAD.search(rendered)[2])
+        for key, p in payload.items():
+            self.assertEqual(len(p['figure']['data']), 5)
+            self.assertEqual(p['figure']['data'][4]['x'], ['2026-10-29', '2026-11-11'])
+            self.assertEqual(p['figure']['data'][4]['marker']['symbol'],
+                             ['star-open', 'circle-open'])
+            self.assertEqual(len([e for e in p['context'] if e.get('source_event_date')]), 2)
+        self.assertIn('First Tokyo-session chart marker 2026-11-11', rendered)
+        rerun, _ = r.refresh(rendered, series, 'test-revision')
+        rerendered = m.apply_registry(rerun, registry)
+        self.assertEqual(json.loads(r.PAYLOAD.search(rendered)[2]),
+                         json.loads(r.PAYLOAD.search(rerendered)[2]))
+
+
 if __name__ == '__main__':
     unittest.main()

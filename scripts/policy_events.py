@@ -26,16 +26,18 @@ OFFICIAL_HOSTS = {
     'Cabinet Office': {'www.cao.go.jp', 'www5.cao.go.jp'},
     'Cabinet Secretariat': {'www.cas.go.jp'},
     'Prime Minister': {'japan.kantei.go.jp', 'www.kantei.go.jp'},
+    'FED': {'www.federalreserve.gov'},
+    'BLS': {'www.bls.gov'},
 }
 COLORS = {'expansionary': '#15803d', 'contractionary': '#c62828',
           'mixed': '#b77908', 'neutral': '#76818c', 'fx': '#8064a2'}
-CATEGORIES = {'Fiscal', 'BoJ', 'FX intervention'}
+CATEGORIES = {'Fiscal', 'BoJ', 'FX intervention', 'Fed', 'U.S. CPI'}
 STAGES = {'proposal', 'announcement', 'decision', 'enactment', 'implementation',
           'operation', 'disclosure', 'communication'}
 EVENT_FIELDS = {'id', 'issuer', 'category', 'stage', 'event_date', 'date_basis',
                 'disclosure_date', 'verified_on', 'title', 'summary', 'classification',
                 'direction', 'caveat', 'sources'}
-OPTIONAL_FIELDS = {'legacy_id', 'effective_date'}
+OPTIONAL_FIELDS = {'legacy_id', 'effective_date', 'plot_date'}
 SOURCE_FIELDS = {'url', 'title', 'published_date', 'quotes'}
 PRIVATE_PATTERNS = re.compile(r'(?:chatgpt\.com/(?:c|g)/|sandbox:|/mnt/data/|'
                               r'private briefing|briefing text|api[_ -]?key|'
@@ -100,11 +102,26 @@ def validate(registry, today=None):
             raise ValueError('BoJ event must be sourced to BOJ')
         if event['category'] == 'FX intervention' and event['issuer'] != 'MOF':
             raise ValueError('Japanese intervention must be sourced to MOF')
+        if event['category'] == 'Fed' and event['issuer'] != 'FED':
+            raise ValueError('Fed events require an official Federal Reserve source')
+        if event['category'] == 'U.S. CPI' and event['issuer'] != 'BLS':
+            raise ValueError('U.S. CPI events require an official BLS source')
+        if event['issuer'] in ('FED', 'BLS') and event['category'] not in ('Fed', 'U.S. CPI'):
+            raise ValueError('Global issuer/category mismatch')
         when, disclosed, checked = map(iso, [event['event_date'], event['disclosure_date'], event['verified_on']])
         if not when <= disclosed <= checked <= today:
             raise ValueError('Future, reversed or unverified event/disclosure dates')
         if 'effective_date' in event:
             iso(event['effective_date'])  # Future effective dates are explicit, not plotted as completed events.
+        global_event = event['category'] in ('Fed', 'U.S. CPI')
+        if global_event:
+            if 'plot_date' not in event:
+                raise ValueError('U.S. events require explicit Tokyo-session plot_date')
+            plotted = iso(event['plot_date'])
+            if plotted < when or (plotted - when).days > 4 or plotted.weekday() > 4:
+                raise ValueError('Invalid Tokyo-session plot_date')
+        elif 'plot_date' in event:
+            raise ValueError('Only U.S. events may have a separate plot_date')
         if event['id'] in ids or identity(event) in identities:
             raise ValueError('Duplicate event ID or economic event identity')
         marker_id = event.get('legacy_id', event['id'])
@@ -229,22 +246,37 @@ def verify_sources(registry, fetch=fetch_source, today=None):
 
 
 def chart_event(event, value):
-    return {'id': event.get('legacy_id', event['id']), 'policy_event_id': event['id'],
-            'date': event['event_date'], 'value': value, 'event': event['title'],
-            'summary': event['summary'], 'classification': event['classification'],
-            'category': event['category'], 'color': COLORS[event['direction']],
-            'verification': 'Official source verified; disclosed ' + event['disclosure_date'],
-            'caveat': event['caveat'], 'date_basis': event['date_basis'],
-            'disclosure_date': event['disclosure_date']}
+    global_color = {'Fed': '#2563eb', 'U.S. CPI': '#0891b2'}
+    marker = {'id': event.get('legacy_id', event['id']), 'policy_event_id': event['id'],
+              'date': event.get('plot_date', event['event_date']), 'value': value,
+              'event': event['title'], 'summary': event['summary'],
+              'classification': event['classification'], 'category': event['category'],
+              'color': global_color.get(event['category'], COLORS[event['direction']]),
+              'verification': 'Official source verified; disclosed ' + event['disclosure_date'],
+              'caveat': event['caveat'], 'date_basis': event['date_basis'],
+              'disclosure_date': event['disclosure_date']}
+    if 'plot_date' in event:
+        marker['source_event_date'] = event['event_date']
+    return marker
 
 
 def sync_traces(p):
+    global_categories = ('Fed', 'U.S. CPI')
     groups = [p['fiscal'], [e for e in p['context'] if e['category'] == 'BoJ'],
-              [e for e in p['context'] if e['category'] == 'FX intervention']]
-    if len(p['figure']['data']) != 4:
+              [e for e in p['context'] if e['category'] == 'FX intervention'],
+              [e for e in p['context'] if e['category'] in global_categories]]
+    traces = p['figure']['data']
+    if len(traces) == 4 and groups[3]:
+        # A separately labeled global-news trace; never masquerade as BoJ events.
+        global_trace = copy.deepcopy(traces[2])
+        global_trace['name'] = 'U.S. Fed / CPI releases'
+        global_trace['legendgroup'] = 'us-global-events'
+        global_trace['showlegend'] = True
+        traces.append(global_trace)
+    if len(traces) not in (4, 5):
         raise ValueError('Unexpected report trace layout')
-    for i, events in enumerate(groups, 1):
-        trace = p['figure']['data'][i]
+    for i, events in enumerate(groups[:len(traces)-1], 1):
+        trace = traces[i]
         trace['x'] = [e['date'] for e in events]; trace['y'] = [e['value'] for e in events]
         trace['marker']['color'] = [e['color'] for e in events]
         if i == 1:
@@ -252,7 +284,9 @@ def sync_traces(p):
         else:
             trace['customdata'] = [[e['event'], e['classification'], e.get('verification', ''), e.get('caveat', '')] for e in events]
             trace['marker']['symbol'] = [
-                'diamond-open' if i == 2 else ('triangle-up-open' if 'unconfirmed' in e.get('verification', '').lower() else 'square-open')
+                ('diamond-open' if i == 2 else
+                 ('star-open' if e['category'] == 'Fed' else 'circle-open') if i == 4 else
+                 ('triangle-up-open' if 'unconfirmed' in e.get('verification', '').lower() else 'square-open'))
                 for e in events]
 
 
@@ -261,9 +295,11 @@ def description(event, pending):
     links = '; '.join(f'<a href="{e(s["url"])}" target="_blank" rel="noopener">{e(s["title"])}</a>' for s in event['sources'])
     waiting = ('<p class="event-meta">No matching market observation yet for: ' + e(', '.join(pending)) + '. No price is inferred.</p>') if pending else ''
     effective = (' Effective ' + e(event['effective_date']) + '.') if event.get('effective_date') else ''
+    plotted = (' First Tokyo-session chart marker ' + e(event['plot_date']) +
+               '; no same-day price reaction inferred.') if event.get('plot_date') else ''
     return (f'<article class="event-description" data-policy-id="{e(event["id"])}"><h4>{e(event["event_date"])} · {e(event.get("legacy_id", event["id"]))} · {e(event["title"])}</h4>'
             f'<p>{e(event["summary"])}</p><p class="event-meta">{e(event["classification"])} · {e(event["stage"])}. '
-            f'Disclosed {e(event["disclosure_date"])}; verified {e(event["verified_on"])}. Date basis: {e(event["date_basis"])}.{effective}</p>'
+            f'Disclosed {e(event["disclosure_date"])}; verified {e(event["verified_on"])}. Date basis: {e(event["date_basis"])}.{effective}{plotted}</p>'
             f'<p class="event-meta">{e(event["caveat"])}</p><p class="event-meta">{links}</p>{waiting}</article>')
 
 
@@ -281,6 +317,7 @@ def apply_registry(document, registry):
     for key, p in payload.items():
         values = dict(zip(p['dates'], p['values']))
         for event in registry['events']:
+            market_date = event.get('plot_date', event['event_date'])
             family = 'fiscal' if event['category'] == 'Fiscal' else 'context'
             marker_id = event.get('legacy_id', event['id'])
             existing = [e for e in p[family] if e.get('id') == marker_id or e.get('policy_event_id') == event['id']]
@@ -288,16 +325,16 @@ def apply_registry(document, registry):
                 raise ValueError('Ambiguous report replacement')
             if 'legacy_id' in event and not existing:
                 raise ValueError('Legacy event replacement target is missing')
-            if existing and (existing[0]['date'] != event['event_date'] or
+            if existing and (existing[0]['date'] != market_date or
                              existing[0].get('category', 'Fiscal') != event['category']):
                 raise ValueError('Legacy event identity mismatch')
-            if not existing and any(e['date'] == event['event_date'] and e['event'] == event['title'] for e in p[family]):
+            if not existing and any(e['date'] == market_date and e['event'] == event['title'] for e in p[family]):
                 raise ValueError('Possible unkeyed duplicate requires editorial resolution')
-            if existing and event['event_date'] not in values:
+            if existing and market_date not in values:
                 raise ValueError('Existing event lost its market observation; history retained')
             p[family] = [e for e in p[family] if e not in existing]
-            if event['event_date'] in values:
-                p[family].append(chart_event(event, values[event['event_date']]))
+            if market_date in values:
+                p[family].append(chart_event(event, values[market_date]))
             else:
                 pending[event['id']].append(key)
         p['fiscal'].sort(key=lambda e: (e['date'], e['id']))

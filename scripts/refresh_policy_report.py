@@ -66,7 +66,8 @@ def refresh(document, series, source_commit='unknown'):
                     raise ValueError(f'Missing annotated date {date.date()} for {code}')
                 event['value'] = float(s.at[date])
         groups = [p['fiscal'], [e for e in p['context'] if e['category']=='BoJ'],
-                  [e for e in p['context'] if e['category']=='FX intervention']]
+                  [e for e in p['context'] if e['category']=='FX intervention'],
+                  [e for e in p['context'] if e['category'] in ('Fed', 'U.S. CPI')]]
         for trace, events in zip(p['figure']['data'][1:], groups):
             trace['x'] = [e['date'] for e in events]
             trace['y'] = [e['value'] for e in events]
