@@ -118,7 +118,7 @@ def validate(registry, today=None):
             if 'plot_date' not in event:
                 raise ValueError('U.S. events require explicit Tokyo-session plot_date')
             plotted = iso(event['plot_date'])
-            if plotted < when or (plotted - when).days > 4 or plotted.weekday() > 4:
+            if plotted <= when or (plotted - when).days > 4 or plotted.weekday() > 4:
                 raise ValueError('Invalid Tokyo-session plot_date')
         elif 'plot_date' in event:
             raise ValueError('Only U.S. events may have a separate plot_date')
