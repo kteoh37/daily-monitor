@@ -209,7 +209,11 @@ def fetch_source(url, issuer):
         def redirect_request(self, req, fp, code, msg, headers, newurl):
             official_url(newurl, issuer)
             return super().redirect_request(req, fp, code, msg, headers, newurl)
-    with build_opener(OfficialRedirect()).open(Request(url, headers={'User-Agent': 'DailyMonitorEvidenceCheck/1.0'}), timeout=30) as response:
+    try:
+        response = build_opener(OfficialRedirect()).open(Request(url, headers={'User-Agent': 'DailyMonitorEvidenceCheck/1.0'}), timeout=30)
+    except Exception as exc:
+        raise ValueError(f'Official source fetch failed for {url}: {type(exc).__name__}: {exc}') from exc
+    with response:
         official_url(response.url, issuer)
         raw = response.read(15_000_001)
         if len(raw) > 15_000_000:
