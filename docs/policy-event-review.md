@@ -110,6 +110,32 @@ Inspect the diff and preserve every existing record before using the proposed fi
 in a draft branch. Run the checks again on the exact final branch. No private
 briefing is accepted as an input by any repository script.
 
+
+## Material global monetary context
+
+A requested scope extension permits only completed, material **Federal Reserve policy
+decisions** (issuer `FED`, category `Fed`) and **official U.S. CPI releases**
+(issuer `BLS`, category `U.S. CPI`) as separately labeled global context.
+Their sources must be the original `www.federalreserve.gov` and `www.bls.gov`
+pages, with short exact quotations. Further global categories require a new
+reviewed schema extension rather than mislabeling them as Japanese policy.
+
+A U.S. event retains its actual U.S. calendar date, official publication date,
+and timezone; `plot_date` separately specifies the **first following Tokyo
+trading session** when its time of release falls after Tokyo's market close.
+For example the October 28 14:00 EDT FOMC statement is charted on the October 29
+Tokyo session; the November 10 08:30 EST CPI release is charted on November 11.
+These are *event markers*, not implied causal market responses. Exact Haver
+observations alone determine whether a marker can be plotted; no interpolated
+yields, FX values, announcement surprises or yield attribution are created.
+
+The underlying report remains a Japan JGB/yen chart, not a U.S. bond chart.
+Global context has its own trace and hover labels, and does not count as fiscal,
+BoJ, or FX intervention. Do not add every routine announcement: prioritize high
+signal events with plausible JGB/yen transmission, and omit trivial fiscal items
+such as small allocations of already-budgeted reserve funds. Preserve existing
+stable IDs, Haver market arrays, and the original reviewed event chronology.
+
 ## Initial verified example
 
 MOF's November 9, 2026 Q3 release reports JPY7,975.6bn on July 30,

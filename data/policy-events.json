@@ -94,6 +94,35 @@
       ]
     },
     {
+      "id": "FED-FOMC-2026-10-28",
+      "issuer": "FED",
+      "category": "Fed",
+      "stage": "decision",
+      "event_date": "2026-10-28",
+      "plot_date": "2026-10-29",
+      "date_basis": "FOMC statement released October 28 at 14:00 EDT (October 29 at 03:00 JST); Tokyo cash bond market had closed",
+      "disclosure_date": "2026-10-28",
+      "verified_on": "2026-11-12",
+      "title": "FOMC holds 3.75-4.00% target range (10-2 vote)",
+      "summary": "The FOMC maintained the federal funds target range at 3.75-4.00% on October 28 by a 10-2 vote; two members preferred a 25bp increase. This is U.S. policy context for JGB and yen monitoring, not a BoJ decision.",
+      "classification": "U.S. rate decision — unchanged",
+      "direction": "neutral",
+      "caveat": "Official release is October 28 U.S. Eastern time; displayed on October 29, the first subsequent Tokyo session. Chart placement does not establish a causal JGB or yen response, or the size of any Fed surprise.",
+      "sources": [
+        {
+          "url": "https://www.federalreserve.gov/newsevents/pressreleases/monetary20261028a.htm",
+          "title": "Federal Reserve: FOMC Statement, October 28, 2026",
+          "published_date": "2026-10-28",
+          "quotes": [
+            "October 28, 2026",
+            "For release at 2:00 p.m. EDT",
+            "The Committee decided to maintain the target range for the federal funds rate at 3-3/4 to 4 percent",
+            "The Federal Open Market Committee approved the following statement for release by a 10 – 2 vote:"
+          ]
+        }
+      ]
+    },
+    {
       "id": "BOJ-MPM-2026-10-30",
       "issuer": "BOJ",
       "category": "BoJ",
