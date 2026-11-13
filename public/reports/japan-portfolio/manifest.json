@@ -1,31 +1,31 @@
 {
   "schema_version": 1,
   "mode": "live-source-check",
-  "attempted_at_utc": "2026-11-09T14:33:13.983367+00:00",
+  "attempted_at_utc": "2026-11-13T15:11:19.636982+00:00",
   "components": {
     "MOF": {
-      "latest": "2026-10-31",
-      "fingerprint": "8f8154c745b2d7cc09ed0b5c01c57390670540f853cf2d18559245a6843c8bf1",
-      "status": "revised",
+      "latest": "2026-11-07",
+      "fingerprint": "b89e420a36d582c3abc9e955ebc216dc46d7bd53411fc449f7cdb48266ac85ce",
+      "status": "new",
       "new_periods": 1,
-      "prior_history_revised": true,
+      "prior_history_revised": false,
       "cards": [
         {
           "file": "portfolio_flows.png",
           "title": "Cross-border portfolio flows since 2022",
-          "description": "Cumulative net purchases from January 2022, yen trillion. Residents: foreign equities +2.84, foreign long-term debt +9.89, foreign short-term debt +0.62. Nonresidents: Japanese equities +22.11, Japanese long-term debt +13.19, Japanese short-term debt -29.26. Positive values mean net purchases; negative values mean net sales."
+          "description": "Cumulative net purchases from January 2022, yen trillion. Residents: foreign equities +2.20, foreign long-term debt +9.35, foreign short-term debt +0.68. Nonresidents: Japanese equities +22.01, Japanese long-term debt +14.56, Japanese short-term debt -30.76. Positive values mean net purchases; negative values mean net sales."
         },
         {
           "file": "portfolio_flows_recent.png",
           "title": "Cross-border portfolio flows rebased to 2026",
-          "description": "Cumulative net purchases from January 2026, yen trillion. Residents: foreign equities +3.95, foreign long-term debt -3.95, foreign short-term debt -0.43. Nonresidents: Japanese equities +11.03, Japanese long-term debt +11.87, Japanese short-term debt -17.16. Positive values mean net purchases; negative values mean net sales."
+          "description": "Cumulative net purchases from January 2026, yen trillion. Residents: foreign equities +3.31, foreign long-term debt -4.48, foreign short-term debt -0.37. Nonresidents: Japanese equities +10.92, Japanese long-term debt +13.24, Japanese short-term debt -18.66. Positive values mean net purchases; negative values mean net sales."
         }
       ],
       "source": "MOF weekly securities transactions",
       "source_url": "https://www.mof.go.jp/policy/international_policy/reference/itn_transactions_in_securities/week.csv",
-      "source_final_update": "Final Update  November  6 , 2026",
+      "source_final_update": "Final Update  November  12 , 2026",
       "stale": false,
-      "last_success": "2026-11-09T14:33:13.983367+00:00",
+      "last_success": "2026-11-13T15:11:19.636982+00:00",
       "failed": false
     },
     "JSDA": {
@@ -43,10 +43,10 @@
         }
       ],
       "source": "JSDA via Haver Analytics",
-      "source_commit": "7c007c6ac95885819e54f798bbce2cafb6d2670d",
-      "snapshot_utc": "2026-11-07T15:13:46+00:00",
+      "source_commit": "0eaf09eaef6de1fa7fe5cda2d28fe8f5a3e67898",
+      "snapshot_utc": "2026-11-12T15:13:39+00:00",
       "stale": false,
-      "last_success": "2026-11-09T14:33:13.983367+00:00",
+      "last_success": "2026-11-13T15:11:19.636982+00:00",
       "failed": false
     }
   },
