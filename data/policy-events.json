@@ -149,6 +149,140 @@
           ]
         }
       ]
+    },
+    {
+      "id": "F27",
+      "issuer": "Diet",
+      "category": "Fiscal",
+      "stage": "communication",
+      "event_date": "2025-11-07",
+      "date_basis": "Dated official communication in Japan; first-public intraday time is unverified",
+      "disclosure_date": "2025-11-07",
+      "verified_on": "2026-11-13",
+      "title": "Annual primary-balance target reconsidered",
+      "summary": "Takaichi tells the House of Representatives Budget Committee that she intends to change the annual primary-balance approach and consider assessment over several years.",
+      "classification": "Fiscal-framework signal; no quantified impulse",
+      "direction": "neutral",
+      "caveat": "A stated change in approach, not abandonment of all fiscal discipline. The November 9 news report is later than this November 7 testimony. Earlier disclosure and surprise remain unverified.",
+      "sources": [
+        {
+          "url": "https://www.shugiin.go.jp/internet/itdb_kaigiroku.nsf/html/kaigiroku/001821920251107002.htm",
+          "title": "House of Representatives: Budget Committee, November 7, 2025",
+          "published_date": "2025-11-07",
+          "quotes": [
+            "単年度のプライマリーバランスという考え方については変更する、取り下げると考えていただいて結構かと思います。"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "F28",
+      "issuer": "Prime Minister",
+      "category": "Fiscal",
+      "stage": "enactment",
+      "event_date": "2026-04-07",
+      "date_basis": "Dated official communication in Japan; first-public intraday time is unverified",
+      "disclosure_date": "2026-04-07",
+      "verified_on": "2026-11-13",
+      "title": "FY2026 budget enacted",
+      "summary": "The FY2026 budget passes the House of Councillors and is enacted. This is the parliamentary stage of the budget previously shown at F21.",
+      "classification": "Fiscal implementation milestone; no separate direction",
+      "direction": "neutral",
+      "caveat": "Linked to F21 (December 26 draft). Enactment can be anticipated and is not an additional independent stimulus or verified first disclosure.",
+      "sources": [
+        {
+          "url": "https://japan.kantei.go.jp/105/speech/202604/07kaiken.html",
+          "title": "Prime Minister: FY2026 budget passage press conference",
+          "published_date": "2026-04-07",
+          "quotes": [
+            "Today, the FY2026 budget was passed by the House of Councillors and has been enacted."
+          ]
+        }
+      ]
+    },
+    {
+      "id": "F29",
+      "issuer": "Prime Minister",
+      "category": "Fiscal",
+      "stage": "announcement",
+      "event_date": "2026-05-25",
+      "date_basis": "Dated official communication in Japan; first-public intraday time is unverified",
+      "disclosure_date": "2026-05-25",
+      "verified_on": "2026-11-13",
+      "title": "Summer energy relief and supplementary-budget plan",
+      "summary": "Takaichi announces July-September electricity and gas assistance requiring approximately JPY500bn, with reserve-fund approval planned the next day, and a supplementary budget exceeding JPY3tn. Reduced FY2025 bond issuance is intended to offset the additional financing in total market issuance.",
+      "classification": "Expansionary relief announcement; financing offsets",
+      "direction": "expansionary",
+      "caveat": "Announcement stage preceding F23 (June 3 draft). Reserve-funded energy assistance and supplementary-budget reserves are different components and must not be added as independent packages. Spending capacity is not realized demand; no surprise is measured.",
+      "sources": [
+        {
+          "url": "https://japan.kantei.go.jp/105/speech/202605/25kaiken.html",
+          "title": "Prime Minister: Middle East response and supplementary budget",
+          "published_date": "2026-05-25",
+          "quotes": [
+            "approximately 500 billion yen",
+            "We expect the scale of the supplementary budget to be over three trillion yen."
+          ]
+        }
+      ]
+    },
+    {
+      "id": "F30",
+      "issuer": "Prime Minister",
+      "category": "Fiscal",
+      "stage": "proposal",
+      "event_date": "2026-06-30",
+      "date_basis": "Dated official communication in Japan; first-public intraday time is unverified",
+      "disclosure_date": "2026-06-30",
+      "verified_on": "2026-11-13",
+      "title": "Draft fiscal framework and investment-budget reforms",
+      "summary": "The draft Basic Policy sets out a separate investment framework, steady debt-to-GDP reduction as the core fiscal-management target, and a longer-term economic and fiscal plan. Cabinet approval is sought for mid-July.",
+      "classification": "Fiscal-framework proposal; net effect unquantified",
+      "direction": "neutral",
+      "caveat": "Draft stage linked to F24 (July 21 approval). Related investment-budget proposals were already discussed on June 25-26; June 30 is not certified as first disclosure. No spending total or market surprise is inferred.",
+      "sources": [
+        {
+          "url": "https://japan.kantei.go.jp/105/actions/202606/30keizai.html",
+          "title": "Prime Minister: Council on Economic and Fiscal Policy, June 30",
+          "published_date": "2026-06-30",
+          "quotes": [
+            "Today we discussed the draft of the Basic Policy on Economic and Fiscal Management and Reform."
+          ]
+        }
+      ]
+    },
+    {
+      "id": "F31",
+      "issuer": "MOF",
+      "category": "Fiscal",
+      "stage": "proposal",
+      "event_date": "2026-07-10",
+      "date_basis": "Dated official communication in Japan; first-public intraday time is unverified",
+      "disclosure_date": "2026-07-10",
+      "verified_on": "2026-11-13",
+      "title": "Retail JGB and domestic-asset investment proposals",
+      "summary": "Katayama proposes improving retail JGB products and exploring support for further household and pension-fund investment in Japanese financial assets. July 14 follow-up discusses NISA eligibility and inheritance-tax ideas while acknowledging GPIF rules and consultation requirements.",
+      "classification": "Debt-management proposals; not adopted measures",
+      "direction": "neutral",
+      "caveat": "July 10 proposal cluster with July 14 clarification. No adopted GPIF allocation change, instruction to purchase JGBs, NISA expansion or inheritance-tax change is established. Earlier proposals existed; first disclosure is unverified.",
+      "sources": [
+        {
+          "url": "https://www.mof.go.jp/public_relations/conference/my20260710.html",
+          "title": "MOF: Katayama press conference, July 10",
+          "published_date": "2026-07-10",
+          "quotes": [
+            "日本の個人向け国債の商品性見直し、新商品の設計を早急に具体化して進めたいと思っております。"
+          ]
+        },
+        {
+          "url": "https://www.mof.go.jp/public_relations/conference/my20260714.html",
+          "title": "MOF: Katayama follow-up press conference, July 14",
+          "published_date": "2026-07-14",
+          "quotes": [
+            "もちろんＧＰＩＦにはＧＰＩＦのルールがあるのはよく分かっています。"
+          ]
+        }
+      ]
     }
   ]
 }

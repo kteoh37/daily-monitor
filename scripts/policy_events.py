@@ -22,6 +22,7 @@ ROOT = Path(__file__).resolve().parents[1]
 REGISTRY = ROOT / 'data/policy-events.json'
 PAYLOAD = re.compile(r'(const data=)(.*?)(;\nfunction drawRange)', re.S)
 OFFICIAL_HOSTS = {
+    'Diet': {'www.shugiin.go.jp', 'www.sangiin.go.jp'},
     'MOF': {'www.mof.go.jp'}, 'BOJ': {'www.boj.or.jp'},
     'Cabinet Office': {'www.cao.go.jp', 'www5.cao.go.jp'},
     'Cabinet Secretariat': {'www.cas.go.jp'},
@@ -228,7 +229,13 @@ def fetch_source(url, issuer):
             return out.read_text()
     if content_type not in ('text/html', 'text/plain', 'application/xhtml+xml'):
         raise ValueError('Unsupported official source content type')
-    content = raw.decode('utf-8-sig', errors='strict')
+    try:
+        content = raw.decode('utf-8-sig', errors='strict')
+    except UnicodeDecodeError:
+        # Legacy Diet transcripts declare Shift_JIS; keep all other sources strict.
+        if issuer != 'Diet' or not re.search(br'charset=[\"\']?shift[_-]jis', raw[:4096], re.I):
+            raise
+        content = raw.decode('cp932', errors='strict')
     if content_type == 'text/plain':
         return content
     parser = VisibleText(); parser.feed(content)

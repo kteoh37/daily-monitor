@@ -3,6 +3,8 @@ from datetime import date
 import json
 from pathlib import Path
 import unittest
+from unittest.mock import patch, MagicMock
+from email.message import Message
 
 import policy_events as m
 import refresh_policy_report as r
@@ -18,6 +20,27 @@ class PolicyEventTests(unittest.TestCase):
     def test_current_registry_validates_and_renders(self):
         current = m.validate(json.loads(m.REGISTRY.read_text()))
         m.apply_registry(self.document, current)
+
+    def test_diet_sources_are_official_and_host_scoped(self):
+        url = 'https://www.shugiin.go.jp/internet/itdb_kaigiroku.nsf/html/kaigiroku/001821920251107002.htm'
+        self.assertEqual(m.official_url(url, 'Diet'), url)
+        with self.assertRaises(ValueError):
+            m.official_url('https://example.com/transcript', 'Diet')
+
+    def test_diet_shift_jis_and_other_sources_fail_closed(self):
+        body = '<meta charset="Shift_JIS"><p>単年度の目標</p>'.encode('cp932')
+        response = MagicMock()
+        response.__enter__.return_value = response
+        response.read.return_value = body
+        response.headers = Message()
+        response.headers['Content-Type'] = 'text/html'
+        response.url = 'https://www.shugiin.go.jp/transcript.htm'
+        with patch.object(m, 'build_opener') as opener:
+            opener.return_value.open.return_value = response
+            self.assertIn('単年度の目標', m.fetch_source(response.url, 'Diet'))
+            response.url = 'https://www.mof.go.jp/transcript.htm'
+            with self.assertRaises(UnicodeDecodeError):
+                m.fetch_source(response.url, 'MOF')
 
     def test_checked_official_registry(self):
         self.assertEqual(m.validate(self.registry), self.registry)
